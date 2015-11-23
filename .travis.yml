@@ -9,7 +9,7 @@ install:
 
 # command to run tests
 script:
-  - flake8 git_aggregator --exclude=__init__.py
+  - flake8 . --exclude=__init__.py
   - coverage run --source git_aggregator setup.py test
 
 after_success:
