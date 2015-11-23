@@ -15,6 +15,15 @@ logger = logging.getLogger(__name__)
 
 class Repo(object):
     def __init__(self, cwd, remotes, merges, target):
+        """Initialize a git repository aggregator
+
+        :param cwd: path to the directory where to initialize the repository
+        :param remotes: list of remote linked to the repository. A remote is
+        a dict {'name': '', 'url': ''}
+        :param: merges list of merge to apply to build the aggregated
+        repository. A merge is a dict {'remote': '', 'ref': ''}
+        :param target:
+        """
         self.cwd = cwd
         self.remotes = remotes
         self.merges = merges

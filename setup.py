@@ -16,7 +16,7 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: '
             'GNU Lesser General Public License v3 (LGPLv3)',
-        'Operating System :: POSIX',  # because we use symlinks
+        'Operating System :: POSIX',
         'Programming Language :: Python :: 2.7',
     ],
     license='LGPLv3',
@@ -33,5 +33,5 @@ setuptools.setup(
     ],
     entry_points=dict(
         console_scripts=['gitaggregate=git_aggregator.main:main']),
-    #test_suite='tests',
+    test_suite='tests',
 )

@@ -6,6 +6,8 @@ import logging
 import os
 
 import kaptan
+from .exception import ConfigException
+
 
 log = logging.getLogger(__name__)
 
@@ -23,25 +25,67 @@ def get_repos(config):
         repo_dict = {
             'cwd': directory,
         }
+        remote_names = set()
         if 'remotes' in repo_data:
             repo_dict['remotes'] = []
-            for remote_name, url in repo_data['remotes'].items():
+            remotes_data = repo_data['remotes'] or {}
+            for remote_name, url in remotes_data.items():
+                if not url:
+                    raise ConfigException(
+                        '%s: No url defined for remote %s.' % (
+                         directory, remote_name))
                 remote_dict = {
                     'name': remote_name,
                     'url': url
                 }
                 repo_dict['remotes'].append(remote_dict)
-        merges = []
-        for merge in repo_data.get('merges', []):
-            remote, ref = merge.split(' ')
-            merges.append({
-                'remote': remote,
-                'ref': ref,
-            })
-        repo_dict['merges'] = merges
-        remote, branch = repo_data.get('target').split(' ')
+                remote_names.add(remote_name)
+            if not remote_names:
+                raise ConfigException(
+                    '%s: You should at least define one remote.' % directory)
+        else:
+            raise ConfigException('%s: remotes is not defined.' % directory)
+        if 'merges' in repo_data:
+            merges = []
+            merge_data = repo_data.get('merges') or []
+            for merge in merge_data:
+                parts = merge.split(' ')
+                if len(parts) != 2:
+                    raise ConfigException(
+                        '%s: Merge must be formatted as '
+                        '"remote_name ref".' % directory)
+
+                remote_name, ref = merge.split(' ')
+                if remote_name not in remote_names:
+                    raise ConfigException(
+                        '%s: Merge remote %s not defined in remotes.' % (
+                         directory, remote_name))
+                merges.append({
+                    'remote': remote_name,
+                    'ref': ref,
+                })
+            repo_dict['merges'] = merges
+            if not merges:
+                raise ConfigException(
+                    '%s: You should at least define one merge.' % directory)
+        else:
+            raise ConfigException(
+                '%s: merges is not defined.' % directory)
+        if 'target' not in repo_data:
+            raise ConfigException('%s: No target defined.' % directory)
+        parts = (repo_data.get('target') or "") .split(' ')
+        if len(parts) != 2:
+            raise ConfigException(
+                '%s: Target must be formatted as '
+                '"remote_name branch_name"' % directory)
+
+        remote_name, branch = repo_data.get('target').split(' ')
+        if remote_name not in remote_names:
+            raise ConfigException(
+                '%s: Target remote %s not defined in remotes.' % (
+                 directory, remote_name))
         repo_dict['target'] = {
-                'remote': remote,
+                'remote': remote_name,
                 'branch': branch,
             }
         repo_list.append(repo_dict)
