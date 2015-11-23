@@ -111,6 +111,18 @@ class TestConfig(unittest.TestCase):
             ex.exception.message,
             '/product_attribute: Merge must be formatted as '
             '"remote_name ref".')
+        config_yaml = """
+/product_attribute:
+    remotes:
+        oca: https://github.com/OCA/product-attribute.git
+    merges:
+    target: oca aggregated_branch
+"""
+        with self.assertRaises(ConfigException) as ex:
+            config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(
+            ex.exception.message,
+            '/product_attribute: You should at least define one merge.')
 
         config_yaml = """
 /product_attribute:
