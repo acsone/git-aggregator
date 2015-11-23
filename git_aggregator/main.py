@@ -109,4 +109,3 @@ def load_aggregate(args):
         r.aggregate()
         if args.do_push:
             r.push()
-

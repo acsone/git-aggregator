@@ -36,11 +36,11 @@ class TestConfig(unittest.TestCase):
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
              'remotes': [
-                {'name': 'oca',
-                 'url': 'https://github.com/OCA/product-attribute.git'},
-                {'name': 'acsone',
-                 'url':
-                 'git+ssh://git@github.com/acsone/product-attribute.git'}],
+                 {'name': 'oca',
+                  'url': 'https://github.com/OCA/product-attribute.git'},
+                 {'name': 'acsone',
+                  'url':
+                  'git+ssh://git@github.com/acsone/product-attribute.git'}],
              'target': {'branch': 'aggregated_branch_name',
                         'remote': 'acsone'}})
 

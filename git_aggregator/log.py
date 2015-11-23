@@ -114,4 +114,3 @@ class DebugLogFormatter(LogFormatter):
     """Provides greater technical details than standard log Formatter."""
 
     template = debug_log_template
-

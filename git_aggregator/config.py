@@ -32,8 +32,8 @@ def get_repos(config):
             for remote_name, url in remotes_data.items():
                 if not url:
                     raise ConfigException(
-                        '%s: No url defined for remote %s.' % (
-                         directory, remote_name))
+                        '%s: No url defined for remote %s.' %
+                        (directory, remote_name))
                 remote_dict = {
                     'name': remote_name,
                     'url': url
@@ -58,8 +58,8 @@ def get_repos(config):
                 remote_name, ref = merge.split(' ')
                 if remote_name not in remote_names:
                     raise ConfigException(
-                        '%s: Merge remote %s not defined in remotes.' % (
-                         directory, remote_name))
+                        '%s: Merge remote %s not defined in remotes.' %
+                        (directory, remote_name))
                 merges.append({
                     'remote': remote_name,
                     'ref': ref,
@@ -82,12 +82,12 @@ def get_repos(config):
         remote_name, branch = repo_data.get('target').split(' ')
         if remote_name not in remote_names:
             raise ConfigException(
-                '%s: Target remote %s not defined in remotes.' % (
-                 directory, remote_name))
+                '%s: Target remote %s not defined in remotes.' %
+                (directory, remote_name))
         repo_dict['target'] = {
-                'remote': remote_name,
-                'branch': branch,
-            }
+            'remote': remote_name,
+            'branch': branch,
+        }
         repo_list.append(repo_dict)
     return repo_list
 
