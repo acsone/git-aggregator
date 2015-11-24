@@ -9,8 +9,24 @@ import logging
 import subprocess
 
 from .utils import working_directory_keeper
+from exception import GitAggregatorException
+from colorama.initialise import orig_stderr
 
 logger = logging.getLogger(__name__)
+
+
+def ishex(s):
+    """True iff given string is a valid hexadecimal number.
+    >>> ishex('deadbeef')
+    True
+    >>> ishex('01bn78')
+    False
+    """
+    try:
+        int(s, 16)
+    except ValueError:
+        return False
+    return True
 
 
 class Repo(object):
@@ -32,6 +48,26 @@ class Repo(object):
         self.merges = merges
         self.target = target
         self.shell_command_after = shell_command_after or []
+
+    def query_remote_ref(self, remote, ref):
+        """Query remote repo about given ref.
+        :return: ``('tag', sha)`` if ref is a tag in remote
+                 ``('branch', sha)`` if ref is branch (aka "head") in remote
+                 ``(None, ref)`` if ref does not exist in remote. This happens
+                 notably if ref if a commit sha (they can't be queried)
+        """
+        out = self.log_call(['git', 'ls-remote', remote, ref],
+                            cwd=self.cwd,
+                            callwith=subprocess.check_output,
+                            log_level=logging.DEBUG).strip()
+        for sha, fullref in (l.split() for l in out.splitlines()):
+            if fullref == 'refs/heads/' + ref:
+                return 'branch', sha
+            elif fullref == 'refs/tags/' + ref:
+                return 'tag', sha
+            elif fullref == ref and ref == 'HEAD':
+                return 'HEAD', sha
+        return None, ref
 
     def log_call(self, cmd, callwith=subprocess.check_call,
                  log_level=logging.INFO, **kw):
@@ -55,15 +91,17 @@ class Repo(object):
                 self.log_call(['git', 'init', target_dir])
 
             os.chdir(target_dir)
-            if not is_new:
-                self.log_call(['git', 'reset', '--hard', 'ORIG_HEAD'])
-            else:
-                self.log_call(['git', 'checkout', '-b', self.target['branch']])
-
+            self._switch_to_branch(self.target['branch'])
             for r in self.remotes:
                 self._set_remote(**r)
             self.log_call(['git', 'fetch',  '--all'])
-            for merge in self.merges:
+            merges = self.merges
+            if not is_new:
+                # reset to the first merge
+                origin = merges[0]
+                merges = merges[1:]
+                self._reset_to(**origin)
+            for merge in merges:
                 self._merge(**merge)
             self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
@@ -73,6 +111,22 @@ class Repo(object):
             os.chdir(self.cwd)
             self.log_call(
                 ['git', 'push', '-f', self.target['remote']])
+
+    def _reset_to(self, remote, ref):
+        logger.info('Reset branch to %s %s', remote, ref)
+        rtype, sha = self.query_remote_ref(remote, ref)
+        if rtype is None and not ishex(ref):
+            raise GitAggregatorException(
+                'Could not reset %s to %s. No commit found for %s '
+                % (remote, ref, ref))
+        self.log_call(['git', 'reset', '--hard', sha],
+                      log_level=logging.DEBUG)
+
+    def _switch_to_branch(self, branch_name):
+        # check if the branch already exists
+        logger.info("Switch to branch %s", branch_name)
+        self.log_call(['git', 'checkout', '-B', branch_name],
+                      log_level=logging.DEBUG)
 
     def _execute_shell_command_after(self):
         logger.info('Execute shell after commands')
