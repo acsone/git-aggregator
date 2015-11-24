@@ -41,8 +41,39 @@ class TestConfig(unittest.TestCase):
                  {'name': 'acsone',
                   'url':
                   'git+ssh://git@github.com/acsone/product-attribute.git'}],
+             'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
                         'remote': 'acsone'}})
+
+    def test_load_shell_command_after(self):
+        """Shell command after are alway parser as a list
+        """
+        config_yaml = """
+/product_attribute:
+    remotes:
+        oca: https://github.com/OCA/product-attribute.git
+        acsone: git+ssh://git@github.com/acsone/product-attribute.git
+    merges:
+        - oca 8.0
+    target: acsone aggregated_branch_name
+    shell_command_after: ls
+        """
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(repos[0]['shell_command_after'], ['ls'])
+        config_yaml = """
+/product_attribute:
+    remotes:
+        oca: https://github.com/OCA/product-attribute.git
+        acsone: git+ssh://git@github.com/acsone/product-attribute.git
+    merges:
+        - oca 8.0
+    target: acsone aggregated_branch_name
+    shell_command_after:
+        - ls
+        - echo
+        """
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(repos[0]['shell_command_after'], ['ls', 'echo'])
 
     def test_load_remotes_exception(self):
         config_yaml = """

@@ -1,6 +1,6 @@
-.. image:: https://img.shields.io/badge/licence-LGPL--3-blue.svg
-   :target: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
-   :alt: License: LGPL-3
+.. image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+   :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
+   :alt: License: AGPL-3
 .. image:: https://travis-ci.org/acsone/git-aggregator.svg?branch=master
     :target: https://travis-ci.org/acsone/git-aggregator
 .. image:: https://coveralls.io/repos/acsone/git-aggregator/badge.png?branch=master 
@@ -26,7 +26,7 @@ Create a ``repos.yaml`` file:
 		oca: https://github.com/OCA/product-attribute.git
 		acsone: git+ssh://git@github.com/acsone/product-attribute.git
 	    merges:
-		- oca 9d7da70c4e17e1c5b8e89049d758c0f70be9636c
+		- oca 8.0
 		- oca refs/pull/105/head
 		- oca refs/pull/106/head
 	    target: acsone aggregated_branch_name
@@ -62,9 +62,44 @@ Only aggregate a specific repository using `fnmatch`_:
 
 .. _fnmatch: https://docs.python.org/2/library/fnmatch.html
 
+It's also possible to specify a command or a list of shell commands to execute 
+after the aggregation (and before the push). The commands are executed into
+the aggregated directory.
+
+  .. code-block:: yaml
+
+	./product_attribute:
+	    remotes:
+		oca: https://github.com/OCA/product-attribute.git
+		acsone: git+ssh://git@github.com/acsone/product-attribute.git
+	    merges:
+		- oca 8.0
+	    target: acsone aggregated_branch_name
+            shell_command_after: echo 'my command'
+
+	./connector-interfaces:
+	    remotes:
+		oca:  https://github.com/OCA/connector-interfaces.git
+		acsone:  https://github.com/acsone/connector-interfaces.git
+	    merges:
+		- oca 9.0
+	    target: acsone aggregated_branch_name
+            shell_command_after:
+		- echo 'a first command'
+		- echo 'a second command'
+
 Credits
 =======
 
 Author:
 
   * Laurent Mignon (ACSONE)
+
+Maintainer
+==========
+
+.. image:: https://www.acsone.eu/logo.png
+   :alt: ACSONE SA/NV
+   :target: http://www.acsone.eu
+
+This module is maintained by ACSONE SA/NV.

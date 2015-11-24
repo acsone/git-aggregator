@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class Repo(object):
-    def __init__(self, cwd, remotes, merges, target):
+    def __init__(self, cwd, remotes, merges, target,
+                 shell_command_after=None):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -23,11 +24,14 @@ class Repo(object):
         :param: merges list of merge to apply to build the aggregated
         repository. A merge is a dict {'remote': '', 'ref': ''}
         :param target:
+        :patam shell_command_after: an optional list of shell command to
+        execute after the aggregation
         """
         self.cwd = cwd
         self.remotes = remotes
         self.merges = merges
         self.target = target
+        self.shell_command_after = shell_command_after or []
 
     def log_call(self, cmd, callwith=subprocess.check_call,
                  log_level=logging.INFO, **kw):
@@ -42,6 +46,7 @@ class Repo(object):
         If the target_dir doesn't exist, create an empty git repo otherwise
         clean it, add all remotes , and merge all merges.
         """
+        logger.info('Start aggregation of %s', self.cwd)
         target_dir = self.cwd
 
         with working_directory_keeper:
@@ -60,12 +65,19 @@ class Repo(object):
             self.log_call(['git', 'fetch',  '--all'])
             for merge in self.merges:
                 self._merge(**merge)
+            self._execute_shell_command_after()
+        logger.info('End aggregation of %s', self.cwd)
 
     def push(self):
         with working_directory_keeper:
             os.chdir(self.cwd)
             self.log_call(
                 ['git', 'push', '-f', self.target['remote']])
+
+    def _execute_shell_command_after(self):
+        logger.info('Execute shell after commands')
+        for cmd in self.shell_command_after:
+            self.log_call(cmd.split(' '))
 
     def _merge(self, remote, ref):
         self.log_call(

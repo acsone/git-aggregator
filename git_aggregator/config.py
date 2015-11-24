@@ -88,6 +88,15 @@ def get_repos(config):
             'remote': remote_name,
             'branch': branch,
         }
+        commands = []
+        if 'shell_command_after' in repo_data:
+            cmds = repo_data['shell_command_after']
+            # if str: turn to list
+            if cmds:
+                if not hasattr(cmds, '__iter__'):
+                    cmds = [cmds]
+                commands = cmds
+        repo_dict['shell_command_after'] = commands
         repo_list.append(repo_dict)
     return repo_list
 
