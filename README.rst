@@ -91,12 +91,13 @@ the aggregated directory.
 Credits
 =======
 
-Author:
+Author
+------
 
   * Laurent Mignon (ACSONE)
 
 Maintainer
-==========
+----------
 
 .. image:: https://www.acsone.eu/logo.png
    :alt: ACSONE SA/NV
