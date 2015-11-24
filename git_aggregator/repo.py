@@ -10,7 +10,6 @@ import subprocess
 
 from .utils import working_directory_keeper
 from exception import GitAggregatorException
-from colorama.initialise import orig_stderr
 
 logger = logging.getLogger(__name__)
 
