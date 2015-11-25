@@ -9,15 +9,13 @@ import unittest
 import subprocess
 import urllib
 import urlparse
+import logging
 from tempfile import mkdtemp
 
 from git_aggregator.utils import WorkingDirectoryKeeper,\
     working_directory_keeper
 from git_aggregator.repo import Repo
-
-COMMIT_USER_NAME = 'Test'
-COMMIT_USER_EMAIL = 'test@example.org'
-COMMIT_USER_FULL = '%s %s' % (COMMIT_USER_NAME, COMMIT_USER_EMAIL)
+from git_aggregator import main
 
 
 def git_get_last_rev(repo_dir):
@@ -53,6 +51,11 @@ def path2url(path):
 
 
 class TestRepo(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        main.setup_logger(level=logging.DEBUG)
+        super(TestRepo, cls).setUpClass()
 
     def setUp(self):
         """ Setup
