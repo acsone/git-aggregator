@@ -120,8 +120,7 @@ class Repo(object):
         """
         out = self.log_call(['git', 'ls-remote', remote, ref],
                             cwd=self.cwd,
-                            callwith=subprocess.check_output,
-                            log_level=logging.DEBUG).strip()
+                            callwith=subprocess.check_output).strip()
         for sha, fullref in (l.split() for l in out.splitlines()):
             if fullref == 'refs/heads/' + ref:
                 return 'branch', sha
@@ -132,7 +131,7 @@ class Repo(object):
         return None, ref
 
     def log_call(self, cmd, callwith=subprocess.check_call,
-                 log_level=logging.INFO, **kw):
+                 log_level=logging.DEBUG, **kw):
             """Wrap a subprocess call with logging
             :param meth: the calling method to use.
             """
@@ -150,13 +149,13 @@ class Repo(object):
         with working_directory_keeper:
             is_new = not os.path.exists(target_dir)
             if is_new:
-                self.log_call(['git', 'init', target_dir])
+                self.init_repository(target_dir)
 
             os.chdir(target_dir)
             self._switch_to_branch(self.target['branch'])
             for r in self.remotes:
                 self._set_remote(**r)
-            self.log_call(['git', 'fetch',  '--all'])
+            self.fetch_all()
             merges = self.merges
             if not is_new:
                 # reset to the first merge
@@ -167,6 +166,14 @@ class Repo(object):
                 self._merge(**merge)
             self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
+
+    def init_repository(self, target_dir):
+        logger.info('Init empty git repository in %s', target_dir)
+        self.log_call(['git', 'init', target_dir])
+
+    def fetch_all(self):
+        logger.info('Fetching all remotes')
+        self.log_call(['git', 'fetch',  '--all'], cwd=self.cwd)
 
     def push(self):
         with working_directory_keeper:
@@ -181,14 +188,15 @@ class Repo(object):
             raise GitAggregatorException(
                 'Could not reset %s to %s. No commit found for %s '
                 % (remote, ref, ref))
-        self.log_call(['git', 'reset', '--hard', sha],
-                      log_level=logging.DEBUG)
+        cmd = ['git', 'reset', '--hard', sha]
+        if logger.getEffectiveLevel() != logging.DEBUG:
+            cmd.insert(2, '--quiet')
+        self.log_call(cmd)
 
     def _switch_to_branch(self, branch_name):
         # check if the branch already exists
         logger.info("Switch to branch %s", branch_name)
-        self.log_call(['git', 'checkout', '-B', branch_name],
-                      log_level=logging.DEBUG)
+        self.log_call(['git', 'checkout', '-B', branch_name])
 
     def _execute_shell_command_after(self):
         logger.info('Execute shell after commands')
@@ -196,12 +204,15 @@ class Repo(object):
             self.log_call(cmd.split(' '))
 
     def _merge(self, remote, ref):
+        logger.info("Pull %s, %s", remote, ref)
         cmd = ['git', 'pull', remote, ref]
         if self.git_version >= (1, 7, 10):
             # --edit and --no-edit appear with Git 1.7.10
             # see Documentation/RelNotes/1.7.10.txt of Git
             # (https://git.kernel.org/cgit/git/git.git/tree)
             cmd.insert(2, '--no-edit')
+        if logger.getEffectiveLevel() != logging.DEBUG:
+            cmd.insert(2, '--quiet')
         self.log_call(cmd)
 
     def _get_remotes(self):

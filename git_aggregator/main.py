@@ -16,8 +16,24 @@ from .repo import Repo
 
 logger = logging.getLogger(__name__)
 
+_LOG_LEVEL_STRINGS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 
-def setup_logger(log=None, level='INFO'):
+
+def _log_level_string_to_int(log_level_string):
+    if log_level_string not in _LOG_LEVEL_STRINGS:
+        message = 'invalid choice: {0} (choose from {1})'.format(
+            log_level_string, _LOG_LEVEL_STRINGS)
+        raise argparse.ArgumentTypeError(message)
+
+    log_level_int = getattr(logging, log_level_string, logging.INFO)
+    # check the logging log_level_choices have not changed from our expected
+    # values
+    assert isinstance(log_level_int, int)
+
+    return log_level_int
+
+
+def setup_logger(log=None, level=logging.INFO):
     """Setup logging for CLI use.
     :param log: instance of logger
     :type log: :py:class:`Logger`
@@ -62,6 +78,13 @@ def get_parser():
         help='Pull only from the directories. Accepts fnmatch(1)'
              'by commands'
     )
+    main_parser.add_argument(
+        '--log-level',
+        default='INFO',
+        dest='log_level',
+        type=_log_level_string_to_int,
+        nargs='?',
+        help='Set the logging output level. {0}'.format(_LOG_LEVEL_STRINGS))
     return main_parser
 
 
@@ -75,7 +98,7 @@ def main():
     args = parser.parse_args()
 
     setup_logger(
-        level=args.log_level.upper() if 'log_level' in args else 'INFO'
+        level=args.log_level
     )
 
     try:
