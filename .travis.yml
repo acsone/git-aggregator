@@ -1,6 +1,11 @@
 language: python
 python:
   - "2.7"
+before_install:
+  # For tests running git command
+  - git config --global user.name "test"
+  - git config --global user.email "test.test@test.com"
+
 # command to install dependencies
 install:
   - pip install .
