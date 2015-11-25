@@ -90,6 +90,7 @@ class TestRepo(unittest.TestCase):
                 self.remote1, 'tracked', "first", msg="initial commit")
             self.remote2 = os.path.join(sandbox, 'remote2')
             subprocess.call(['git', 'clone', self.url_remote1, 'remote2'])
+            git_set_user_info(self.remote2)
             self.url_remote2 = path2url(self.remote2)
             subprocess.check_call(['git', 'tag', 'tag1'], cwd=self.remote1)
             self.commit_2_sha = git_write_commit(
@@ -119,3 +120,95 @@ class TestRepo(unittest.TestCase):
         repo.aggregate()
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_1_sha)
+
+    def test_simple_merge(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }, {
+            'remote': 'r2',
+            'ref': self.commit_3_sha
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_3_sha)
+
+    def test_update_aggregate(self):
+        # in this test
+        # * we'll aggregate a first time r1 master with r2
+        #   at commit 3
+        # * create a new commit on r1
+        # aggregate again
+        # the last change of r1 must be in the aggregated branch
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'master'
+        }, {
+            'remote': 'r2',
+            'ref': self.commit_3_sha
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked')))
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked2')))
+        git_write_commit(
+            self.remote1, 'tracked_new', "last", msg="new file on remote1")
+        repo.aggregate()
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked_new')))
+
+    def test_update_aggregate_2(self):
+        # in this test
+        # * we'll aggregate a first time r1 commit1 with r2
+        #   at commit 3
+        # * create a new commit on r1
+        # aggregate again
+        # the last change of r1 must not be in the aggregated branch
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': self.commit_1_sha
+        }, {
+            'remote': 'r2',
+            'ref': self.commit_3_sha
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked')))
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked2')))
+        git_write_commit(
+            self.remote1, 'tracked_new', "last", msg="new file on remote1")
+        repo.aggregate()
+        self.assertFalse(os.path.isfile(os.path.join(self.cwd, 'tracked_new')))
