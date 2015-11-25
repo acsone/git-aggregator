@@ -130,6 +130,11 @@ class TestRepo(unittest.TestCase):
         repo.aggregate()
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_3_sha)
+        # push
+        repo.push()
+        rtype, sha = repo.query_remote_ref('r1', 'agg')
+        self.assertEquals(rtype, 'branch')
+        self.assertTrue(sha)
 
     def test_update_aggregate(self):
         # in this test

@@ -176,10 +176,12 @@ class Repo(object):
         self.log_call(['git', 'fetch',  '--all'], cwd=self.cwd)
 
     def push(self):
+        remote = self.target['remote']
+        branch = self.target['branch']
+        logger.info("Push %s to %s", branch, remote)
         with working_directory_keeper:
             os.chdir(self.cwd)
-            self.log_call(
-                ['git', 'push', '-f', self.target['remote']])
+            self.log_call(['git', 'push', '-f', remote, branch])
 
     def _reset_to(self, remote, ref):
         logger.info('Reset branch to %s %s', remote, ref)
