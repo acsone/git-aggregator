@@ -10,6 +10,7 @@ import argcomplete
 import fnmatch
 
 from .log import DebugLogFormatter
+from .log import LogFormatter
 from .config import load_config
 from .repo import Repo
 
@@ -42,7 +43,10 @@ def setup_logger(log=None, level=logging.INFO):
         log = logging.getLogger()
     if not log.handlers:
         channel = logging.StreamHandler()
-        channel.setFormatter(DebugLogFormatter())
+        if level == logging.DEBUG:
+            channel.setFormatter(DebugLogFormatter())
+        else:
+            channel.setFormatter(LogFormatter())
 
         log.setLevel(level)
         log.addHandler(channel)

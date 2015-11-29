@@ -3,13 +3,14 @@
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
-
+from __future__ import unicode_literals
 import os
 import logging
 import subprocess
 
 from .utils import working_directory_keeper
-from exception import GitAggregatorException
+from .exception import GitAggregatorException
+from ._compat import console_to_str
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +59,9 @@ class Repo(object):
         if version is not None:
             return version
 
-        return cls.init_git_version(subprocess.check_output(
-            ['git', '--version']))
+        return cls.init_git_version(
+            console_to_str(subprocess.check_output(
+                ['git', '--version'])))
 
     @classmethod
     def init_git_version(cls, v_str):
@@ -136,7 +138,10 @@ class Repo(object):
             :param meth: the calling method to use.
             """
             logger.log(log_level, "%s> call %r", self.cwd, cmd)
-            return callwith(cmd, **kw)
+            ret = callwith(cmd, **kw)
+            if callwith == subprocess.check_output:
+                ret = console_to_str(ret)
+            return ret
 
     def aggregate(self):
         """ Aggregate all merges into the target branch

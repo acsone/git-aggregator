@@ -7,8 +7,14 @@ import os
 import shutil
 import unittest
 import subprocess
-import urllib
-import urlparse
+try:
+    # Py 2
+    from urlparse import urljoin
+    from urllib import pathname2url
+except ImportError:
+    # PY  3
+    from urllib.parse import urljoin
+    from urllib.request import pathname2url
 import logging
 from tempfile import mkdtemp
 
@@ -46,8 +52,8 @@ def git_write_commit(repo_dir, filepath, contents, msg="Unit test commit"):
 
 
 def path2url(path):
-    return urlparse.urljoin(
-        'file:', urllib.pathname2url(os.path.abspath(path)))
+    return urljoin(
+        'file:', pathname2url(os.path.abspath(path)))
 
 
 class TestRepo(unittest.TestCase):
@@ -88,6 +94,7 @@ class TestRepo(unittest.TestCase):
                 self.remote2, 'tracked2', "remote2", msg="new commit")
             subprocess.check_call(['git', 'checkout', '-b', 'b2'],
                                   cwd=self.remote2)
+        self.maxDiff = None
 
     def tearDown(self):
         shutil.rmtree(self.sandbox)

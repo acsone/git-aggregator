@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='git-aggregator',
-    version='0.7.0',
+    version='0.8.0',
     description='A library to aggregate git branches from different remotes '
                 'into a consolidated one',
     long_description=open('README.rst').read(),
@@ -18,6 +18,12 @@ setuptools.setup(
             'GNU Affero General Public License v3 or later (AGPLv3+)',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        "Topic :: Utilities",
+        "Topic :: System :: Shells",
     ],
     license="AGPLv3+",
     author='ACSONE SA/NV',

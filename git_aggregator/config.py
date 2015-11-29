@@ -7,6 +7,7 @@ import os
 
 import kaptan
 from .exception import ConfigException
+from ._compat import string_types
 
 
 log = logging.getLogger(__name__)
@@ -93,7 +94,7 @@ def get_repos(config):
             cmds = repo_data['shell_command_after']
             # if str: turn to list
             if cmds:
-                if not hasattr(cmds, '__iter__'):
+                if isinstance(cmds, string_types):
                     cmds = [cmds]
                 commands = cmds
         repo_dict['shell_command_after'] = commands

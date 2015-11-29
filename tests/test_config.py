@@ -6,6 +6,7 @@ import kaptan
 
 from git_aggregator import config
 from git_aggregator.exception import ConfigException
+from git_aggregator._compat import PY2
 
 
 class TestConfig(unittest.TestCase):
@@ -29,21 +30,28 @@ class TestConfig(unittest.TestCase):
         """
         repos = config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(len(repos), 1)
+        # remotes are configured as dict therefore the order is not preserved
+        # when parsed
+        remotes = repos[0]['remotes']
+        repos[0]['remotes'] = []
         self.assertDictEqual(
             repos[0],
             {'cwd': '/product_attribute',
              'merges': [{'ref': '8.0', 'remote': 'oca'},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
-             'remotes': [
-                 {'name': 'oca',
-                  'url': 'https://github.com/OCA/product-attribute.git'},
-                 {'name': 'acsone',
-                  'url':
-                  'git+ssh://git@github.com/acsone/product-attribute.git'}],
+             'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
                         'remote': 'acsone'}})
+        assertfn = self.assertItemsEqual if PY2 else self.assertCountEqual
+        assertfn(
+            remotes,
+            [{'name': 'oca',
+              'url': 'https://github.com/OCA/product-attribute.git'},
+             {'name': 'acsone',
+              'url':
+              'git+ssh://git@github.com/acsone/product-attribute.git'}])
 
     def test_load_shell_command_after(self):
         """Shell command after are alway parser as a list
@@ -85,7 +93,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: remotes is not defined.')
 
         config_yaml = """
@@ -98,7 +106,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: You should at least define one remote.')
 
         config_yaml = """
@@ -112,7 +120,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: No url defined for remote oca.')
 
     def test_load_merges_exception(self):
@@ -125,7 +133,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: merges is not defined.')
 
         config_yaml = """
@@ -139,7 +147,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: Merge must be formatted as '
             '"remote_name ref".')
         config_yaml = """
@@ -152,7 +160,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: You should at least define one merge.')
 
         config_yaml = """
@@ -166,7 +174,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: Merge remote oba not defined in remotes.')
 
     def test_load_target_exception(self):
@@ -179,7 +187,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(ex.exception.message,
+        self.assertEquals(ex.exception.args[0],
                           '/product_attribute: No target defined.')
 
         config_yaml = """
@@ -193,7 +201,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: Target must be formatted as '
             '"remote_name branch_name"')
 
@@ -208,5 +216,5 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
-            ex.exception.message,
+            ex.exception.args[0],
             '/product_attribute: Target remote oba not defined in remotes.')
