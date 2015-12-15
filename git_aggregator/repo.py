@@ -208,7 +208,7 @@ class Repo(object):
     def _execute_shell_command_after(self):
         logger.info('Execute shell after commands')
         for cmd in self.shell_command_after:
-            self.log_call(cmd.split(' '))
+            self.log_call(cmd, shell=True)
 
     def _merge(self, remote, ref):
         logger.info("Pull %s, %s", remote, ref)
