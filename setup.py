@@ -6,12 +6,12 @@ import setuptools
 
 setuptools.setup(
     name='git-aggregator',
-    version='0.8.0',
+    version='1.0.0',
     description='A library to aggregate git branches from different remotes '
                 'into a consolidated one',
     long_description=open('README.rst').read(),
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Framework :: GIT',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: '
