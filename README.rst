@@ -96,6 +96,11 @@ Author
 ------
 
   * Laurent Mignon (ACSONE)
+  
+Contributors
+------------
+
+  * Cyril Gaudin (camptocamp)
 
 Maintainer
 ----------
