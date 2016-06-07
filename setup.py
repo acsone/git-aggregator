@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='git-aggregator',
-    version='1.0.0',
+    version='1.0.1.dev0',
     description='A library to aggregate git branches from different remotes '
                 'into a consolidated one',
     long_description=open('README.rst').read(),
