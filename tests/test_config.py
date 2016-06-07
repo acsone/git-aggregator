@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # © 2015 ACSONE SA/NV
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
+import os
+import tempfile
 import unittest
 import kaptan
 
@@ -218,3 +220,32 @@ class TestConfig(unittest.TestCase):
         self.assertEquals(
             ex.exception.args[0],
             '/product_attribute: Target remote oba not defined in remotes.')
+
+    def test_import_config__not_found(self):
+        with self.assertRaises(ConfigException) as exc:
+            config.load_config("not_found.yaml")
+        self.assertEqual(
+            "Unable to find configuration file: not_found.yaml",
+            str(exc.exception)
+        )
+
+    def test_import_config(self):
+        data_yaml = """
+/test:
+    remotes:
+        oca: https://github.com/test/test.git
+    merges:
+        - oca 8.0
+    target: oca aggregated_branch_name
+"""
+
+        _, config_path = tempfile.mkstemp(suffix='.yaml')
+        try:
+            with open(config_path, 'w') as config_file:
+                config_file.write(data_yaml)
+
+            repos = config.load_config(config_file.name)
+            self.assertEquals(len(repos), 1)
+        finally:
+            if os.path.exists(config_path):
+                os.remove(config_path)

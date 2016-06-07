@@ -104,11 +104,15 @@ def get_repos(config):
 
 def load_config(config):
     """Return repos from a directory and fnmatch. Not recursive.
-    :param configs: paths to config file
-    :type path: list
+
+    :param config: paths to config file
+    :type config: str
     :returns: expanded config dict item
     :rtype: iter(dict)
     """
+    if not os.path.exists(config):
+        raise ConfigException('Unable to find configuration file: %s' % config)
+
     fExt = os.path.splitext(config)[-1]
     conf = kaptan.Kaptan(handler=fExt.lstrip('.'))
     conf.import_config(config)
