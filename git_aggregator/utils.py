@@ -25,4 +25,5 @@ class WorkingDirectoryKeeper(object):
         os.chdir(self.wd)
         self.active = False
 
+
 working_directory_keeper = WorkingDirectoryKeeper()

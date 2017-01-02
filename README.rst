@@ -42,6 +42,21 @@ Create a ``repos.yaml`` file:
 		- acsone 80_connector_flow_ir_cron_able-lmi
 		- acsone 8.0_connector_flow_improve_eval_config
 	    target: acsone aggregated_branch_name
+	    fetch_all:
+		- oca
+
+If any of your merges refer to a specific commit, you will probably need to
+fetch all remotes from the corresponding remote or [use any other strategy to
+get that fetch working](http://stackoverflow.com/a/30701724/1468388), but we
+recommend to simply add this like in the example above:
+
+    fetch_all:
+        - oca
+        - other-remote
+
+You can specify that you want to fetch all references from all remotes you have defined with:
+
+    fetch_all: true
 
 Aggregate you repositories at any time:
 
@@ -101,6 +116,7 @@ Contributors
 ------------
 
   * Cyril Gaudin (camptocamp)
+  * Jairo Llopis <jairo.llopis@tecnativa.com>
 
 Maintainer
 ----------

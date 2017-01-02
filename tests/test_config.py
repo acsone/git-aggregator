@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 import kaptan
+from textwrap import dedent
 
 from git_aggregator import config
 from git_aggregator.exception import ConfigException
@@ -39,6 +40,7 @@ class TestConfig(unittest.TestCase):
         self.assertDictEqual(
             repos[0],
             {'cwd': '/product_attribute',
+             'fetch_all': False,
              'merges': [{'ref': '8.0', 'remote': 'oca'},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
@@ -249,3 +251,46 @@ class TestConfig(unittest.TestCase):
         finally:
             if os.path.exists(config_path):
                 os.remove(config_path)
+
+    def test_fetch_all_string(self):
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                fetch_all: oca
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertSetEqual(repos[0]["fetch_all"], {"oca"})
+
+    def test_fetch_all_list(self):
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                fetch_all:
+                    - oca
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertSetEqual(repos[0]["fetch_all"], {"oca"})
+
+    def test_fetch_all_true(self):
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                fetch_all: yes
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertIs(repos[0]["fetch_all"], True)
