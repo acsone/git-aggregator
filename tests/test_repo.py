@@ -136,7 +136,7 @@ class TestRepo(unittest.TestCase):
             'remote': 'r1',
             'branch': 'agg'
         }
-        repo = Repo(self.cwd, remotes, merges, target, True)
+        repo = Repo(self.cwd, remotes, merges, target, fetch_all=True)
         repo.aggregate()
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_3_sha)
@@ -171,7 +171,7 @@ class TestRepo(unittest.TestCase):
             'remote': 'r1',
             'branch': 'agg'
         }
-        repo = Repo(self.cwd, remotes, merges, target, True)
+        repo = Repo(self.cwd, remotes, merges, target, fetch_all=True)
         repo.aggregate()
         self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked')))
         self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked2')))
@@ -205,7 +205,7 @@ class TestRepo(unittest.TestCase):
             'remote': 'r1',
             'branch': 'agg'
         }
-        repo = Repo(self.cwd, remotes, merges, target, True)
+        repo = Repo(self.cwd, remotes, merges, target, fetch_all=True)
         repo.aggregate()
         self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked')))
         self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked2')))

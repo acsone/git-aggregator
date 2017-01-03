@@ -33,8 +33,8 @@ class Repo(object):
 
     _git_version = None
 
-    def __init__(self, cwd, remotes, merges, target, fetch_all=False,
-                 shell_command_after=None):
+    def __init__(self, cwd, remotes, merges, target,
+                 shell_command_after=None, fetch_all=False):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
