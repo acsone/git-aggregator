@@ -72,6 +72,12 @@ def get_repos(config):
         else:
             raise ConfigException(
                 '%s: merges is not defined.' % directory)
+        # Only fetch required remotes by default
+        repo_dict["fetch_all"] = repo_data.get("fetch_all", False)
+        if isinstance(repo_dict["fetch_all"], string_types):
+            repo_dict["fetch_all"] = frozenset((repo_dict["fetch_all"],))
+        elif isinstance(repo_dict["fetch_all"], list):
+            repo_dict["fetch_all"] = frozenset(repo_dict["fetch_all"])
         if 'target' not in repo_data:
             raise ConfigException('%s: No target defined.' % directory)
         parts = (repo_data.get('target') or "") .split(' ')

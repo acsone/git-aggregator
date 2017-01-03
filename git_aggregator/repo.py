@@ -34,7 +34,7 @@ class Repo(object):
     _git_version = None
 
     def __init__(self, cwd, remotes, merges, target,
-                 shell_command_after=None):
+                 shell_command_after=None, fetch_all=False):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -43,11 +43,19 @@ class Repo(object):
         :param: merges list of merge to apply to build the aggregated
         repository. A merge is a dict {'remote': '', 'ref': ''}
         :param target:
-        :patam shell_command_after: an optional list of shell command to
+        :param fetch_all:
+            Can be an iterable (recommended: ``frozenset``) that yields names
+            of remotes where all refs should be fetched, or ``True`` to do it
+            for every configured remote.
+        :param shell_command_after: an optional list of shell command to
         execute after the aggregation
         """
         self.cwd = cwd
         self.remotes = remotes
+        if fetch_all is True:
+            self.fetch_all = frozenset(r["name"] for r in remotes)
+        else:
+            self.fetch_all = fetch_all or frozenset()
         self.merges = merges
         self.target = target
         self.shell_command_after = shell_command_after or []
@@ -160,7 +168,7 @@ class Repo(object):
             self._switch_to_branch(self.target['branch'])
             for r in self.remotes:
                 self._set_remote(**r)
-            self.fetch_all()
+            self.fetch()
             merges = self.merges
             if not is_new:
                 # reset to the first merge
@@ -176,9 +184,14 @@ class Repo(object):
         logger.info('Init empty git repository in %s', target_dir)
         self.log_call(['git', 'init', target_dir])
 
-    def fetch_all(self):
-        logger.info('Fetching all remotes')
-        self.log_call(['git', 'fetch',  '--all'], cwd=self.cwd)
+    def fetch(self):
+        basecmd = ("git", "fetch")
+        logger.info("Fetching required remotes")
+        for merge in self.merges:
+            cmd = basecmd + (merge["remote"],)
+            if merge["remote"] not in self.fetch_all:
+                cmd += (merge["ref"],)
+            self.log_call(cmd, cwd=self.cwd)
 
     def push(self):
         remote = self.target['remote']
