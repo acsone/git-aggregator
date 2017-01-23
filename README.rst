@@ -44,6 +44,8 @@ Create a ``repos.yaml`` file:
         fetch_all:
             - oca
 
+Environment variables inside of this file will be expanded if the proper option is selected.
+
 Fetching only required branches
 -------------------------------
 
@@ -102,6 +104,13 @@ repositories at any time:
 .. code-block:: bash
 
     $ gitaggregate -c repos.yaml
+
+
+Expand environment variables inside of the configuration file when loading:
+
+.. code-block: bash
+
+    $ gitaggregate -c repos.yaml --expand-env
 
 You can also aggregate and automatically push the result to the target:
 
