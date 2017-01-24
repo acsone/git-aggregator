@@ -25,6 +25,7 @@ def get_repos(config):
             directory = os.path.abspath(directory)
         repo_dict = {
             'cwd': directory,
+            'defaults': repo_data.get('defaults', dict()),
         }
         remote_names = set()
         if 'remotes' in repo_data:
@@ -50,21 +51,32 @@ def get_repos(config):
             merges = []
             merge_data = repo_data.get('merges') or []
             for merge in merge_data:
-                parts = merge.split(' ')
-                if len(parts) != 2:
-                    raise ConfigException(
-                        '%s: Merge must be formatted as '
-                        '"remote_name ref".' % directory)
-
-                remote_name, ref = merge.split(' ')
-                if remote_name not in remote_names:
+                try:
+                    # Assume parts is a str
+                    parts = merge.split(' ')
+                    if len(parts) != 2:
+                        raise ConfigException(
+                            '%s: Merge must be formatted as '
+                            '"remote_name ref".' % directory)
+                    merge = {
+                        "remote": parts[0],
+                        "ref": parts[1],
+                    }
+                except AttributeError:
+                    # Parts is a dict
+                    try:
+                        merge["remote"] = str(merge["remote"])
+                        merge["ref"] = str(merge["ref"])
+                    except KeyError:
+                        raise ConfigException(
+                            '%s: Merge lacks mandatory '
+                            '`remote` or `ref` keys.' % directory)
+                # Check remote is available
+                if merge["remote"] not in remote_names:
                     raise ConfigException(
                         '%s: Merge remote %s not defined in remotes.' %
-                        (directory, remote_name))
-                merges.append({
-                    'remote': remote_name,
-                    'ref': ref,
-                })
+                        (directory, merge["remote"]))
+                merges.append(merge)
             repo_dict['merges'] = merges
             if not merges:
                 raise ConfigException(

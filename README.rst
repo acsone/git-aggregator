@@ -64,6 +64,49 @@ You can specify that you want to fetch all references from all remotes you have 
 
     fetch_all: true
 
+Shallow repositories
+--------------------
+
+To save big amounts of bandwidth and disk space, you can use shallow clones.
+These download only a restricted amount of commits depending on some criteria.
+Available options are `depth`_, `shallow-since`_ and `shallow-exclude`_.
+
+.. warning::
+
+    Available options depend on server and client Git version, be sure to use
+    options available for your environment.
+
+.. _depth: https://git-scm.com/docs/git-fetch#git-fetch---depthltdepthgt
+.. _shallow-since: https://git-scm.com/docs/git-fetch#git-fetch---shallow-sinceltdategt
+.. _shallow-exclude: https://git-scm.com/docs/git-fetch#git-fetch---shallow-excludeltrevisiongt
+
+You can use those in the ``defaults`` sections to apply them everywhere, or
+specifying them in the corresponding ``merges`` section, for which you must use
+the ``dict`` alternate construction. If you need to disable a default in
+``merges``, set it to ``false``:
+
+.. code-block:: yaml
+
+    ./odoo:
+        defaults:
+            depth: 20
+        remotes:
+            odoo: https://github.com/odoo/odoo.git
+            ocb: https://github.com/OCA/OCB.git
+            acsone: https://github.com/acsone/odoo.git
+        merges:
+            -
+                remote: ocb
+                ref: "9.0"
+                depth: 1000
+            -
+                remote: odoo
+                ref: refs/pull/14859/head
+        target: acsone 9.0
+
+Remember that you need to fetch at least the common ancestor of all merges for
+it to succeed.
+
 Triggers
 --------
 

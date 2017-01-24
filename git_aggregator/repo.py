@@ -12,6 +12,7 @@ from .utils import working_directory_keeper
 from .exception import GitAggregatorException
 from ._compat import console_to_str
 
+FETCH_DEFAULTS = ("depth", "shallow-since", "shallow-exclude")
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +35,7 @@ class Repo(object):
     _git_version = None
 
     def __init__(self, cwd, remotes, merges, target,
-                 shell_command_after=None, fetch_all=False):
+                 shell_command_after=None, fetch_all=False, defaults=None):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -43,12 +44,14 @@ class Repo(object):
         :param: merges list of merge to apply to build the aggregated
         repository. A merge is a dict {'remote': '', 'ref': ''}
         :param target:
+        :param shell_command_after: an optional list of shell command to
+        execute after the aggregation
         :param fetch_all:
             Can be an iterable (recommended: ``frozenset``) that yields names
             of remotes where all refs should be fetched, or ``True`` to do it
             for every configured remote.
-        :param shell_command_after: an optional list of shell command to
-        execute after the aggregation
+        :param defaults:
+            Collection of default parameters to be passed to git.
         """
         self.cwd = cwd
         self.remotes = remotes
@@ -59,6 +62,7 @@ class Repo(object):
         self.merges = merges
         self.target = target
         self.shell_command_after = shell_command_after or []
+        self.defaults = defaults or dict()
 
     @property
     def git_version(self):
@@ -174,9 +178,9 @@ class Repo(object):
                 # reset to the first merge
                 origin = merges[0]
                 merges = merges[1:]
-                self._reset_to(**origin)
+                self._reset_to(origin["remote"], origin["ref"])
             for merge in merges:
-                self._merge(**merge)
+                self._merge(merge)
             self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
 
@@ -188,7 +192,7 @@ class Repo(object):
         basecmd = ("git", "fetch")
         logger.info("Fetching required remotes")
         for merge in self.merges:
-            cmd = basecmd + (merge["remote"],)
+            cmd = basecmd + self._fetch_options(merge) + (merge["remote"],)
             if merge["remote"] not in self.fetch_all:
                 cmd += (merge["ref"],)
             self.log_call(cmd, cwd=self.cwd)
@@ -200,6 +204,15 @@ class Repo(object):
         with working_directory_keeper:
             os.chdir(self.cwd)
             self.log_call(['git', 'push', '-f', remote, branch])
+
+    def _fetch_options(self, merge):
+        """Get the fetch options from the given merge dict."""
+        cmd = tuple()
+        for option in FETCH_DEFAULTS:
+            value = merge.get(option, self.defaults.get(option))
+            if value:
+                cmd += ("--%s" % option, str(value))
+        return cmd
 
     def _reset_to(self, remote, ref):
         logger.info('Reset branch to %s %s', remote, ref)
@@ -223,16 +236,17 @@ class Repo(object):
         for cmd in self.shell_command_after:
             self.log_call(cmd, shell=True)
 
-    def _merge(self, remote, ref):
-        logger.info("Pull %s, %s", remote, ref)
-        cmd = ['git', 'pull', remote, ref]
+    def _merge(self, merge):
+        logger.info("Pull %s, %s", merge["remote"], merge["ref"])
+        cmd = ("git", "pull")
         if self.git_version >= (1, 7, 10):
             # --edit and --no-edit appear with Git 1.7.10
             # see Documentation/RelNotes/1.7.10.txt of Git
             # (https://git.kernel.org/cgit/git/git.git/tree)
-            cmd.insert(2, '--no-edit')
+            cmd += ('--no-edit',)
         if logger.getEffectiveLevel() != logging.DEBUG:
-            cmd.insert(2, '--quiet')
+            cmd += ('--quiet',)
+        cmd += self._fetch_options(merge) + (merge["remote"], merge["ref"])
         self.log_call(cmd)
 
     def _get_remotes(self):

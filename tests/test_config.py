@@ -41,6 +41,7 @@ class TestConfig(unittest.TestCase):
             repos[0],
             {'cwd': '/product_attribute',
              'fetch_all': False,
+             'defaults': {},
              'merges': [{'ref': '8.0', 'remote': 'oca'},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
@@ -56,6 +57,52 @@ class TestConfig(unittest.TestCase):
              {'name': 'acsone',
               'url':
               'git+ssh://git@github.com/acsone/product-attribute.git'}])
+
+    def test_load_defaults(self):
+        config_yaml = dedent("""
+            /web:
+                defaults:
+                    depth: 1
+                remotes:
+                    oca: https://github.com/OCA/web.git
+                    acsone: git+ssh://git@github.com/acsone/web.git
+                merges:
+                    -
+                        remote: oca
+                        ref: 8.0
+                        depth: 1000
+                    - oca refs/pull/105/head
+                    -
+                        remote: oca
+                        ref: refs/pull/106/head
+                target: acsone aggregated_branch_name
+        """)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(len(repos), 1)
+        # remotes are configured as dict therefore the order is not preserved
+        # when parsed
+        remotes = repos[0]['remotes']
+        repos[0]['remotes'] = []
+        self.assertDictEqual(
+            repos[0],
+            {'cwd': '/web',
+             'fetch_all': False,
+             'defaults': {'depth': 1},
+             'merges': [{'ref': '8.0', 'remote': 'oca', 'depth': 1000},
+                        {'ref': 'refs/pull/105/head', 'remote': 'oca'},
+                        {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+             'remotes': [],
+             'shell_command_after': [],
+             'target': {'branch': 'aggregated_branch_name',
+                        'remote': 'acsone'}})
+        assertfn = self.assertItemsEqual if PY2 else self.assertCountEqual
+        assertfn(
+            remotes,
+            [{'name': 'oca',
+              'url': 'https://github.com/OCA/web.git'},
+             {'name': 'acsone',
+              'url':
+              'git+ssh://git@github.com/acsone/web.git'}])
 
     def test_load_shell_command_after(self):
         """Shell command after are alway parser as a list
@@ -180,6 +227,21 @@ class TestConfig(unittest.TestCase):
         self.assertEquals(
             ex.exception.args[0],
             '/product_attribute: Merge remote oba not defined in remotes.')
+
+        config_yaml = dedent("""
+            /web:
+                remotes:
+                    oca: https://github.com/OCA/web.git
+                merges:
+                    -
+                        depth: 1
+                target: oca aggregated_branch
+        """)
+        with self.assertRaises(ConfigException) as ex:
+            config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(
+            ex.exception.args[0],
+            '/web: Merge lacks mandatory `remote` or `ref` keys.')
 
     def test_load_target_exception(self):
         config_yaml = """

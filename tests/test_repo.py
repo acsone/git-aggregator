@@ -213,3 +213,70 @@ class TestRepo(unittest.TestCase):
             self.remote1, 'tracked_new', "last", msg="new file on remote1")
         repo.aggregate()
         self.assertFalse(os.path.isfile(os.path.join(self.cwd, 'tracked_new')))
+
+    def test_depth_1(self):
+        """Ensure a simple shallow clone with 1 commit works."""
+        remotes = [{
+            'name': 'shallow',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'shallow',
+            "ref": "master",
+        }]
+        target = {
+            'remote': 'shallow',
+            'branch': 'master'
+        }
+        defaults = {
+            "depth": 1,
+        }
+        repo = Repo(self.cwd, remotes, merges, target, defaults=defaults)
+        repo.aggregate()
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked')))
+
+        with working_directory_keeper:
+            os.chdir(self.cwd)
+            log_shallow = subprocess.check_output(
+                ("git", "rev-list", "shallow/master"))
+        # Shallow fetch: just 1 commmit
+        self.assertEqual(len(log_shallow.splitlines()), 1)
+
+    def test_depth(self):
+        """Ensure `depth` is used correctly."""
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            "ref": "master",
+        }, {
+            "remote": "r2",
+            'ref': "b2",
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        defaults = {
+            "depth": 2,
+        }
+        repo = Repo(self.cwd, remotes, merges, target, defaults=defaults)
+        repo.aggregate()
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked')))
+        self.assertTrue(os.path.isfile(os.path.join(self.cwd, 'tracked2')))
+
+        with working_directory_keeper:
+            os.chdir(self.cwd)
+            log_r1 = subprocess.check_output(
+                ("git", "rev-list", "r1/master"))
+            log_r2 = subprocess.check_output(
+                ("git", "rev-list", "r2/b2"))
+        # Shallow fetch: just 1 commmit
+        self.assertEqual(len(log_r1.splitlines()), 2)
+        # Full fetch: all 3 commits
+        self.assertEqual(len(log_r2.splitlines()), 2)
