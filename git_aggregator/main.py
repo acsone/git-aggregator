@@ -94,7 +94,6 @@ def get_parser():
         '-e', '--expand-env',
         dest='expand_env',
         default=False,
-        type=bool,
         action='store_true',
         help='Expand environment variables in configuration file',
     )
