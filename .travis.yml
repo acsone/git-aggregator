@@ -41,3 +41,4 @@ deploy:
     repo: acsone/git-aggregator
     branch: master
     tags: true
+    condition: $TRAVIS_PYTHON_VERSION = "2.7"

@@ -13,6 +13,7 @@ How to release
 * python setup.py check --restructuredtext
 * commit everything
 * make sure tests pass!
+* git push and make sure travis is green
 * git tag <version>, where <version> is PEP 440 compliant
 * git push --tags
 
