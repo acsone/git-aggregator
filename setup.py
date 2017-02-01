@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='git-aggregator',
-    version='1.0.1.dev0',
+    use_scm_version=True,
     description='A library to aggregate git branches from different remotes '
                 'into a consolidated one',
     long_description=open('README.rst').read(),
@@ -15,7 +15,7 @@ setuptools.setup(
         'Framework :: GIT',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: '
-            'GNU Affero General Public License v3 or later (AGPLv3+)',
+        'GNU Affero General Public License v3 or later (AGPLv3+)',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
@@ -31,6 +31,9 @@ setuptools.setup(
     url='http://github.com/acsone/git-aggregator',
     packages=[
         'git_aggregator',
+    ],
+    setup_requires=[
+        'setuptools_scm',
     ],
     install_requires=[
         'kaptan',
