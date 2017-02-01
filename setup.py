@@ -12,7 +12,6 @@ setuptools.setup(
     long_description=open('README.rst').read(),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'Framework :: GIT',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: '
         'GNU Affero General Public License v3 or later (AGPLv3+)',
