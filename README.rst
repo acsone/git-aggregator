@@ -169,27 +169,47 @@ Only aggregate a specific repository using `fnmatch`_:
 
 .. _fnmatch: https://docs.python.org/2/library/fnmatch.html
 
+Changes
+=======
+
+1.1.0 (Feb, 01, 2017)
+---------------------
+
+* Use setuptools_scm for the release process (https://github.com/acsone/git-aggregator/pull/10)
+* Expand env vars in config. (https://github.com/acsone/git-aggregator/pull/8)
+* Shallow repositories. (https://github.com/acsone/git-aggregator/pull/7)
+* Fetch only required remotes. (https://github.com/acsone/git-aggregator/pull/6)
+* Display readable error if config file not found. (https://github.com/acsone/git-aggregator/pull/2)
+
+1.0.0 (Jan, 19, 2016)
+---------------------
+
+* First release
+
 Credits
 =======
 
 Author
 ------
 
-* Laurent Mignon (ACSONE)
+* Laurent Mignon (ACSONE_)
 
 Contributors
 ------------
 
-* Cyril Gaudin (camptocamp)
+* Cyril Gaudin (camptocamp_)
 * Jairo Llopis (Tecnativa_)
+* Stéphane Bidoul (ACSONE_)
 
+.. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
+.. _camptocamp: https://www.camptocamp.com
 
 Maintainer
 ----------
 
 .. image:: https://www.acsone.eu/logo.png
    :alt: ACSONE SA/NV
-   :target: http://www.acsone.eu
+   :target: https://www.acsone.eu
 
 This project is maintained by ACSONE SA/NV.

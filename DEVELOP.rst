@@ -9,6 +9,7 @@ How to run tests
 How to release
 --------------
 
+* update the changelog into the README.rst file with the list of changes since the last version
 * python setup.py check --restructuredtext
 * commit everything
 * make sure tests pass!
