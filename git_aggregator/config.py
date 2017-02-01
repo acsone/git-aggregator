@@ -4,6 +4,7 @@
 
 import logging
 import os
+from string import Template
 
 import kaptan
 from .exception import ConfigException
@@ -120,11 +121,13 @@ def get_repos(config):
     return repo_list
 
 
-def load_config(config):
+def load_config(config, expand_env=False):
     """Return repos from a directory and fnmatch. Not recursive.
 
     :param config: paths to config file
     :type config: str
+    :param expand_env: True to expand environment varialbes in the config.
+    :type expand_env: bool
     :returns: expanded config dict item
     :rtype: iter(dict)
     """
@@ -133,5 +136,11 @@ def load_config(config):
 
     fExt = os.path.splitext(config)[-1]
     conf = kaptan.Kaptan(handler=fExt.lstrip('.'))
+
+    if expand_env:
+        with open(config, 'r') as file_handler:
+            config = Template(file_handler.read())
+            config = config.substitute(os.environ)
+
     conf.import_config(config)
     return get_repos(conf.export('dict'))

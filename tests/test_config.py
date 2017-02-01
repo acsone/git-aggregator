@@ -314,6 +314,33 @@ class TestConfig(unittest.TestCase):
             if os.path.exists(config_path):
                 os.remove(config_path)
 
+    def test_import_config_expand_env(self):
+        """ It should expand environment variables in the config. """
+        os.environ['TEST_REPO'] = 'https://github.com/test/test.git'
+        data_yaml = """
+/test:
+    remotes:
+        oca: $TEST_REPO
+    merges:
+        - oca 8.0
+    target: oca aggregated_branch_name
+"""
+
+        _, config_path = tempfile.mkstemp(suffix='.yaml')
+        try:
+            with open(config_path, 'w') as config_file:
+                config_file.write(data_yaml)
+
+            repos = config.load_config(config_file.name, True)
+        finally:
+            if os.path.exists(config_path):
+                os.remove(config_path)
+
+        remotes = repos[0]['remotes']
+        self.assertEqual(
+            remotes[0]['url'], os.environ['TEST_REPO']
+        )
+
     def test_fetch_all_string(self):
         config_yaml = """
             ./test:

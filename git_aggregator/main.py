@@ -89,6 +89,15 @@ def get_parser():
         type=_log_level_string_to_int,
         nargs='?',
         help='Set the logging output level. {0}'.format(_LOG_LEVEL_STRINGS))
+
+    main_parser.add_argument(
+        '-e', '--expand-env',
+        dest='expand_env',
+        default=False,
+        action='store_true',
+        help='Expand environment variables in configuration file',
+    )
+
     return main_parser
 
 
@@ -125,7 +134,7 @@ def match_dir(cwd, dirmatch=None):
 def load_aggregate(args):
     """Load YAML and JSON configs and begin creating / updating , aggregating
     and pushing the repos"""
-    repos = load_config(args.config)
+    repos = load_config(args.config, args.expand_env)
     dirmatch = args.dirmatch
     for repo_dict in repos:
         r = Repo(**repo_dict)
