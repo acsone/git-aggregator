@@ -151,7 +151,7 @@ repositories at any time:
 
 Expand environment variables inside of the configuration file when loading:
 
-.. code-block: bash
+.. code-block:: bash
 
     $ gitaggregate -c repos.yaml --expand-env
 
