@@ -169,6 +169,16 @@ Only aggregate a specific repository using `fnmatch`_:
 
 .. _fnmatch: https://docs.python.org/2/library/fnmatch.html
 
+Dockerized version
+------------------
+
+You can use ``git-aggregator`` from CLI without installing anything but Docker:
+
+.. code-block:: bash
+
+    $ docker run -it --rm -v $(pwd):/repos tecnativa/git-aggregator -c repos.yaml
+
+
 Credits
 =======
 
