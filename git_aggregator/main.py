@@ -98,6 +98,13 @@ def get_parser():
         help='Expand environment variables in configuration file',
     )
 
+    main_parser.add_argument(
+        'command',
+        nargs='?',
+        default='aggregate',
+        help='aggregate (default): run the aggregation process\n'
+             'show-closed-prs: show pull requests that are not in open state')
+
     return main_parser
 
 
@@ -115,8 +122,9 @@ def main():
     )
 
     try:
-        if args.config:
-            load_aggregate(args)
+        if args.config and \
+                args.command in ('aggregate', 'show-closed-prs'):
+            run(args)
         else:
             parser.print_help()
     except KeyboardInterrupt:
@@ -133,7 +141,7 @@ def match_dir(cwd, dirmatch=None):
 
 def load_aggregate(args):
     """Load YAML and JSON configs and begin creating / updating , aggregating
-    and pushing the repos"""
+    and pushing the repos (deprecated in favor or run())"""
     repos = load_config(args.config, args.expand_env)
     dirmatch = args.dirmatch
     for repo_dict in repos:
@@ -145,3 +153,22 @@ def load_aggregate(args):
         r.aggregate()
         if args.do_push:
             r.push()
+
+
+def run(args):
+    """Load YAML and JSON configs and run the command specified
+    in args.command"""
+    repos = load_config(args.config, args.expand_env)
+    dirmatch = args.dirmatch
+    for repo_dict in repos:
+        r = Repo(**repo_dict)
+        logger.debug('%s' % r)
+        if not match_dir(r.cwd, dirmatch):
+            logger.info("Skip %s", r.cwd)
+            continue
+        if args.command == 'aggregate':
+            r.aggregate()
+            if args.do_push:
+                r.push()
+        elif args.command == 'show-closed-prs':
+            r.show_closed_prs()
