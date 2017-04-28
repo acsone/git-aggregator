@@ -17,7 +17,7 @@ Manage the aggregation of git branches from different remotes to build a consoli
 Configuration file
 ==================
 
-Create a ``repos.yaml`` file:
+Create a ``repos.yaml`` or ``repos.yml`` file:
 
 .. code-block:: yaml
 
