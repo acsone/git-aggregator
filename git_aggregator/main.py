@@ -64,7 +64,7 @@ def get_parser():
         nargs='?',
         help='Pull the latest repositories from config(s)'
     ).completer = argcomplete.completers.FilesCompleter(
-        allowednames=('.yaml', '.json'), directories=False
+        allowednames=('.yaml', '.yml', '.json'), directories=False
     )
 
     main_parser.add_argument(
