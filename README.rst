@@ -169,6 +169,26 @@ Only aggregate a specific repository using `fnmatch`_:
 
 .. _fnmatch: https://docs.python.org/2/library/fnmatch.html
 
+Show closed github pull requests
+================================
+
+gitaggregate has a mechanism to identify merges that correpond
+to merged or closed Github pull requests.
+
+Such merges are of the form `refs/pull/NNN/head` where NNN is
+the pull request number, with a https://github.com or git@github.com
+remote.
+
+To work around API limitation, you must first generate a
+`Github API token`_.
+
+.. code-block:: bash
+
+   $ export GITHUB_TOKEN=...
+   $ gitaggregate -c repos.yaml show-closed-prs
+
+.. _Github API token: https://github.com/settings/tokens
+
 Changes
 =======
 
