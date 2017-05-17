@@ -103,8 +103,11 @@ def get_parser():
         'command',
         nargs='?',
         default='aggregate',
-        help='aggregate (default): run the aggregation process\n'
-             'show-closed-prs: show pull requests that are not in open state')
+        help='aggregate (default): run the aggregation process.\n'
+             'show-closed-prs: show pull requests that are not open anymore\n'
+             '                 such pull requests are indentified as having\n'
+             '                 a github.com remote and a\n'
+             '                 refs/pull/NNN/head ref in the merge section.')
 
     return main_parser
 
