@@ -55,7 +55,8 @@ def setup_logger(log=None, level=logging.INFO):
 def get_parser():
     """Return :py:class:`argparse.ArgumentParser` instance for CLI."""
 
-    main_parser = argparse.ArgumentParser()
+    main_parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter)
 
     main_parser.add_argument(
         '-c', '--config',
