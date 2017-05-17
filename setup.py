@@ -39,6 +39,7 @@ setuptools.setup(
         'kaptan',
         'argcomplete',
         'colorama',
+        'requests',
     ],
     entry_points=dict(
         console_scripts=['gitaggregate=git_aggregator.main:main']),

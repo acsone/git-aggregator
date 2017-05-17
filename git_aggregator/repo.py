@@ -6,7 +6,10 @@
 from __future__ import unicode_literals
 import os
 import logging
+import re
 import subprocess
+
+import requests
 
 from .utils import working_directory_keeper
 from .exception import GitAggregatorException
@@ -284,3 +287,44 @@ class Repo(object):
                         name, exising_url, url)
             self.log_call(['git', 'remote', 'rm', name])
             self.log_call(['git', 'remote', 'add', name, url])
+
+    def _github_api_get(self, path):
+        url = 'https://api.github.com' + path
+        token = os.environ.get('GITHUB_TOKEN')
+        if token:
+            url += '?access_token=' + token
+        return requests.get(url)
+
+    def show_closed_prs(self):
+        REPO_RE = re.compile(
+                '^(https://github.com/|git@github.com:)'
+                '(?P<owner>.*?)/(?P<repo>.*?)(.git)?$')
+        PULL_RE = re.compile(
+            '^(refs/)?pull/(?P<pr>[0-9]+)/head$')
+        remotes = {r['name']: r['url'] for r in self.remotes}
+        for merge in self.merges:
+            remote = merge['remote']
+            ref = merge['ref']
+            repo_url = remotes[remote]
+            repo_mo = REPO_RE.match(repo_url)
+            if not repo_mo:
+                logger.debug('%s is not a github repo', repo_url)
+                continue
+            pull_mo = PULL_RE.match(ref)
+            if not pull_mo:
+                logger.debug('%s is not a github pull reqeust', ref)
+                continue
+            owner = repo_mo.group('owner')
+            repo = repo_mo.group('repo')
+            pr = pull_mo.group('pr')
+            r = self._github_api_get(
+                '/repos/{owner}/{repo}/pulls/{pr}'.format(**locals()))
+            if r.status_code != 200:
+                logger.warning(
+                    'Could not get status of /{owner}/{repo}/pulls/{pr}'.
+                    format(**locals()))
+                continue
+            state = r.json().get('state')
+            if state != 'open':
+                logger.info('https://github.com/{owner}/{repo}/pull/{pr} '
+                            'in state {state}'.format(**locals()))
