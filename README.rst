@@ -172,6 +172,14 @@ Only aggregate a specific repository using `fnmatch`_:
 Changes
 =======
 
+1.2.0 (May, 17, 2017)
+---------------------
+
+* support .yml config file extension
+* add a show-closed-prs command to display github pull requests
+  that are not open anymore; github pull requests must be referenced
+  as refs/pull/NNN/head in the merges section
+
 1.1.0 (Feb, 01, 2017)
 ---------------------
 
@@ -200,10 +208,12 @@ Contributors
 * Cyril Gaudin (camptocamp_)
 * Jairo Llopis (Tecnativa_)
 * Stéphane Bidoul (ACSONE_)
+* Dave Lasley (LasLabs_)
 
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
 .. _camptocamp: https://www.camptocamp.com
+.. _LasLabs: https://laslabs.com
 
 Maintainer
 ----------
