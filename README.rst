@@ -138,6 +138,19 @@ the aggregated directory.
             - echo 'a first command'
             - echo 'a second command'
 
+A real life example: applying a patch
+
+.. code-block:: yaml
+
+    ./odoo:
+        remotes:
+        oca: https://github.com/OCA/OCB.git
+        acsone: git@github.com/acsone/OCB.git
+        merges:
+            - oca 9.0
+        target: acsone aggregated_branch_name
+        shell_command_after:
+            - git am "$(git format-patch -1 XXXXXX -o ../patches)"
 
 Command line Usage
 ==================
