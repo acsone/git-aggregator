@@ -125,7 +125,7 @@ the aggregated directory.
         merges:
             - oca 8.0
         target: acsone aggregated_branch_name
-            shell_command_after: echo 'my command'
+        shell_command_after: echo 'my command'
 
     ./connector-interfaces:
         remotes:
@@ -134,9 +134,10 @@ the aggregated directory.
         merges:
             - oca 9.0
         target: acsone aggregated_branch_name
-            shell_command_after:
-                - echo 'a first command'
-                - echo 'a second command'
+        shell_command_after:
+            - echo 'a first command'
+            - echo 'a second command'
+
 
 Command line Usage
 ==================
