@@ -3,6 +3,7 @@
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 
 import logging
+import multiprocessing
 import os
 
 import argparse
@@ -100,6 +101,16 @@ def get_parser():
     )
 
     main_parser.add_argument(
+        '--pool-count',
+        dest='pool_count',
+        default=0,
+        type=int,
+        help='Amount of processes to use when aggregating repos. '
+             'This is useful when there are a lot of large repos. '
+             'Use `0` to disable multiprocessing (default).',
+    )
+
+    main_parser.add_argument(
         'command',
         nargs='?',
         default='aggregate',
@@ -159,20 +170,36 @@ def load_aggregate(args):
             r.push()
 
 
+def aggregate_repo(repo, args):
+    """Aggregate one repo according to the args.
+
+    Args:
+         repo (Repo): The repository to aggregate.
+         args (argparse.Namespace): CLI arguments.
+    """
+    logger.debug('%s' % repo)
+    dirmatch = args.dirmatch
+    if not match_dir(repo.cwd, dirmatch):
+        logger.info("Skip %s", repo.cwd)
+        return
+    if args.command == 'aggregate':
+        repo.aggregate()
+        if args.do_push:
+            repo.push()
+    elif args.command == 'show-closed-prs':
+        repo.show_closed_prs()
+
+
 def run(args):
     """Load YAML and JSON configs and run the command specified
     in args.command"""
+
     repos = load_config(args.config, args.expand_env)
-    dirmatch = args.dirmatch
+
+    if args.pool_count:
+        pool = multiprocessing.Pool(args.pool_count)
+        return pool.map(aggregate_repo, [Repo(**r) for r in repos])
+
     for repo_dict in repos:
         r = Repo(**repo_dict)
-        logger.debug('%s' % r)
-        if not match_dir(r.cwd, dirmatch):
-            logger.info("Skip %s", r.cwd)
-            continue
-        if args.command == 'aggregate':
-            r.aggregate()
-            if args.do_push:
-                r.push()
-        elif args.command == 'show-closed-prs':
-            r.show_closed_prs()
+        aggregate_repo(r, args)
