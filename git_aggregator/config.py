@@ -83,8 +83,8 @@ def get_repos(config):
                 raise ConfigException(
                     '%s: You should at least define one merge.' % directory)
         else:
-            raise ConfigException(
-                '%s: merges is not defined.' % directory)
+            repo_dict['merges'] = []
+
         # Only fetch required remotes by default
         repo_dict["fetch_all"] = repo_data.get("fetch_all", False)
         if isinstance(repo_dict["fetch_all"], string_types):

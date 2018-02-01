@@ -163,29 +163,30 @@ class Repo(object):
         If the target_dir doesn't exist, create an empty git repo otherwise
         clean it, add all remotes , and merge all merges.
         """
-        logger.info('Start aggregation of %s', self.cwd)
-        target_dir = self.cwd
+        if self.merges:
+            logger.info('Start aggregation of %s', self.cwd)
+            target_dir = self.cwd
 
-        with working_directory_keeper:
-            is_new = not os.path.exists(target_dir)
-            if is_new:
-                self.init_repository(target_dir)
+            with working_directory_keeper:
+                is_new = not os.path.exists(target_dir)
+                if is_new:
+                    self.init_repository(target_dir)
 
-            os.chdir(target_dir)
-            self._switch_to_branch(self.target['branch'])
-            for r in self.remotes:
-                self._set_remote(**r)
-            self.fetch()
-            merges = self.merges
-            if not is_new:
-                # reset to the first merge
-                origin = merges[0]
-                merges = merges[1:]
-                self._reset_to(origin["remote"], origin["ref"])
-            for merge in merges:
-                self._merge(merge)
-            self._execute_shell_command_after()
-        logger.info('End aggregation of %s', self.cwd)
+                os.chdir(target_dir)
+                self._switch_to_branch(self.target['branch'])
+                for r in self.remotes:
+                    self._set_remote(**r)
+                self.fetch()
+                merges = self.merges
+                if not is_new:
+                    # reset to the first merge
+                    origin = merges[0]
+                    merges = merges[1:]
+                    self._reset_to(origin["remote"], origin["ref"])
+                for merge in merges:
+                    self._merge(merge)
+                self._execute_shell_command_after()
+            logger.info('End aggregation of %s', self.cwd)
 
     def init_repository(self, target_dir):
         logger.info('Init empty git repository in %s', target_dir)
