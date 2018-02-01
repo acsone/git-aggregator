@@ -123,7 +123,7 @@ class Repo(object):
         try:
             version = cls._git_version = tuple(
                 int(x) for x in v_str.split()[2].split('.')[:3])
-        except:
+        except Exception:
             raise ValueError("Could not parse git version output %r. Please "
                              "report this" % v_str)
         return version
@@ -298,8 +298,8 @@ class Repo(object):
 
     def show_closed_prs(self):
         REPO_RE = re.compile(
-                '^(https://github.com/|git@github.com:)'
-                '(?P<owner>.*?)/(?P<repo>.*?)(.git)?$')
+            '^(https://github.com/|git@github.com:)'
+            '(?P<owner>.*?)/(?P<repo>.*?)(.git)?$')
         PULL_RE = re.compile(
             '^(refs/)?pull/(?P<pr>[0-9]+)/head$')
         remotes = {r['name']: r['url'] for r in self.remotes}
