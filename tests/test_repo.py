@@ -7,6 +7,9 @@ import os
 import shutil
 import unittest
 import subprocess
+
+from mock import mock
+
 try:
     # Py 2
     from urlparse import urljoin
@@ -116,6 +119,24 @@ class TestRepo(unittest.TestCase):
         repo.aggregate()
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_1_sha)
+
+    def test_no_merge(self):
+        """When the list of merges is empty,
+        then the aggregate runs but no merge are proceeded.
+        """
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = []
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        with mock.patch.object(Repo, '_merge') as mock_merge:
+            repo.aggregate()
+            self.assertEqual(0, mock_merge.call_count)
 
     def test_simple_merge(self):
         remotes = [{

@@ -243,6 +243,7 @@ Contributors
 * Jairo Llopis (Tecnativa_)
 * Stéphane Bidoul (ACSONE_)
 * Dave Lasley (LasLabs_)
+* Jordi Riera
 
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
