@@ -121,7 +121,9 @@ class TestRepo(unittest.TestCase):
         self.assertEqual(last_rev, self.commit_1_sha)
 
     def test_no_merge(self):
-        """When the list of merges is empty, the aggregate runs but no merge are proceeded."""
+        """When the list of merges is empty,
+        then the aggregate runs but no merge are proceeded.
+        """
         remotes = [{
             'name': 'r1',
             'url': self.url_remote1

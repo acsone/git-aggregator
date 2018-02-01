@@ -175,7 +175,9 @@ class TestConfig(unittest.TestCase):
             '/product_attribute: No url defined for remote oca.')
 
     def test_no_merges(self):
-        """When there is no merge given in the config, it is then exported as empty list."""
+        """When there is no merge given in the config,
+        then it is exported as empty list.
+        """
         config_yaml = """
 /product_attribute:
     remotes:
