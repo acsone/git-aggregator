@@ -44,4 +44,5 @@ setuptools.setup(
     entry_points=dict(
         console_scripts=['gitaggregate=git_aggregator.main:main']),
     test_suite='tests',
+    tests_require=['mock']
 )

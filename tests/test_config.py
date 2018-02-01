@@ -174,19 +174,18 @@ class TestConfig(unittest.TestCase):
             ex.exception.args[0],
             '/product_attribute: No url defined for remote oca.')
 
-    def test_load_merges_exception(self):
+    def test_no_merges(self):
+        """When there is no merge given in the config, it is then exported as empty list."""
         config_yaml = """
 /product_attribute:
     remotes:
         oca: https://github.com/OCA/product-attribute.git
     target: oca aggregated_branch
 """
-        with self.assertRaises(ConfigException) as ex:
-            config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
-            ex.exception.args[0],
-            '/product_attribute: merges is not defined.')
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(repos[0]['shell_command_after'], [])
 
+    def test_load_merges_exception(self):
         config_yaml = """
 /product_attribute:
     remotes:
