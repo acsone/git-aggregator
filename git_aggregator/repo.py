@@ -16,6 +16,7 @@ from .exception import GitAggregatorException
 from ._compat import console_to_str
 
 FETCH_DEFAULTS = ("depth", "shallow-since", "shallow-exclude")
+MERGE_DEFAULTS = ("strategy-option",)
 logger = logging.getLogger(__name__)
 
 
@@ -217,6 +218,15 @@ class Repo(object):
                 cmd += ("--%s" % option, str(value))
         return cmd
 
+    def _merge_options(self, merge):
+        """Get the merge options from the given merge dict."""
+        cmd = tuple()
+        for option in MERGE_DEFAULTS:
+            value = merge.get(option, self.defaults.get(option))
+            if value:
+                cmd += ("--%s" % option, str(value))
+        return cmd
+
     def _reset_to(self, remote, ref):
         logger.info('Reset branch to %s %s', remote, ref)
         rtype, sha = self.query_remote_ref(remote, ref)
@@ -249,7 +259,9 @@ class Repo(object):
             cmd += ('--no-edit',)
         if logger.getEffectiveLevel() != logging.DEBUG:
             cmd += ('--quiet',)
-        cmd += self._fetch_options(merge) + (merge["remote"], merge["ref"])
+        cmd += (self._fetch_options(merge) +
+                self._merge_options(merge) +
+                (merge["remote"], merge["ref"]))
         self.log_call(cmd)
 
     def _get_remotes(self):
