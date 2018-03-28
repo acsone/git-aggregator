@@ -16,6 +16,7 @@ import argparse
 import argcomplete
 import fnmatch
 
+from .utils import ThreadNameKeeper
 from .log import DebugLogFormatter
 from .log import LogFormatter
 from .config import load_config
@@ -218,15 +219,19 @@ def run(args):
 
         sem.acquire()
         r = Repo(**repo_dict)
+        tname = os.path.basename(repo_dict['cwd'])
 
         if jobs > 1:
             t = threading.Thread(
                 target=aggregate_repo, args=(r, args, sem, err_queue))
             t.daemon = True
+            t.name = tname
             threads.append(t)
             t.start()
         else:
-            aggregate_repo(r, args, sem, err_queue)
+            with ThreadNameKeeper():
+                threading.current_thread().name = tname
+                aggregate_repo(r, args, sem, err_queue)
 
     for t in threads:
         t.join()
