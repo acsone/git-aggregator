@@ -3,6 +3,8 @@
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
+import argparse
+from functools import partial
 import os
 import shutil
 import unittest
@@ -16,6 +18,7 @@ except ImportError:
     from urllib.parse import urljoin
     from urllib.request import pathname2url
 import logging
+import multiprocessing
 from tempfile import mkdtemp
 
 from git_aggregator.utils import WorkingDirectoryKeeper,\
@@ -46,7 +49,8 @@ def git_write_commit(repo_dir, filepath, contents, msg="Unit test commit"):
         with open(filepath, 'w') as f:
             f.write(contents)
         subprocess.call(['git', 'add', filepath])
-        subprocess.call(['git', 'commit', '-m', msg])
+        # Ignore local hooks with '-n'
+        subprocess.call(['git', 'commit', '-n', '-m', msg])
         return subprocess.check_output(
             ['git', 'rev-parse', '--verify', 'HEAD']).strip()
 
@@ -280,3 +284,51 @@ class TestRepo(unittest.TestCase):
         self.assertEqual(len(log_r1.splitlines()), 2)
         # Full fetch: all 3 commits
         self.assertEqual(len(log_r2.splitlines()), 2)
+
+    def test_multiprocessing_pool(self):
+        """Aggregate two repos simultaneously."""
+        args = argparse.Namespace(
+            dirmatch=None,
+            command='aggregate',
+            pool_count=2,
+            do_push=False)
+
+        repo1_dir = os.path.join(self.sandbox, 'repo1')
+        repo1_remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        repo1_merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }]
+        repo1_target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        repo1 = Repo(repo1_dir, repo1_remotes, repo1_merges, repo1_target)
+
+        repo2_dir = os.path.join(self.sandbox, 'repo2')
+        repo2_remotes = [{
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+
+        repo2_merges = [{
+            "remote": "r2",
+            'ref': "b2",
+        }]
+        repo2_target = {
+            'remote': 'r2',
+            'branch': 'agg'
+        }
+        repo2 = Repo(repo2_dir, repo2_remotes, repo2_merges, repo2_target)
+
+        pool = multiprocessing.Pool(args.pool_count)
+        aggregate_repo = partial(main.aggregate_repo, args=args)
+        pool.map_async(aggregate_repo, [repo1, repo2]).get(9999999)
+
+        self.assertTrue(os.path.isfile(os.path.join(repo1_dir, 'tracked')))
+        self.assertFalse(os.path.isfile(os.path.join(repo1_dir, 'tracked2')))
+        self.assertTrue(os.path.isfile(os.path.join(repo2_dir, 'tracked')))
+        self.assertTrue(os.path.isfile(os.path.join(repo2_dir, 'tracked2')))

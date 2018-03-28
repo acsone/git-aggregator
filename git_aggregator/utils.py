@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class WorkingDirectoryKeeper(object):
+class WorkingDirectoryKeeper(object):  # DEPRECATED
     """A context manager to get back the working directory as it was before.
     If you want to stack working directory keepers, you need a new instance
     for each stage.
@@ -24,6 +24,3 @@ class WorkingDirectoryKeeper(object):
     def __exit__(self, *exc_args):
         os.chdir(self.wd)
         self.active = False
-
-
-working_directory_keeper = WorkingDirectoryKeeper()
