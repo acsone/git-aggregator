@@ -27,6 +27,9 @@ class WorkingDirectoryKeeper(object):  # DEPRECATED
         self.active = False
 
 
+working_directory_keeper = WorkingDirectoryKeeper()
+
+
 class ThreadNameKeeper(object):
     """A contect manager to get back the thread name as it was before. It
     is meant to be used when modifying the 'MainThread' tread.
