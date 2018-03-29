@@ -108,7 +108,7 @@ def get_parser():
     )
 
     main_parser.add_argument(
-        '--jobs',
+        '-j', '--jobs',
         dest='jobs',
         default=1,
         type=int,
