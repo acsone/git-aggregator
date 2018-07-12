@@ -325,6 +325,7 @@ class Repo(object):
                     format(**locals()))
                 continue
             state = r.json().get('state')
+            merged = (not r.json().get('merged') and 'not ' or '') + 'merged'
             if state != 'open':
                 logger.info('https://github.com/{owner}/{repo}/pull/{pr} '
-                            'in state {state}'.format(**locals()))
+                            'in state {state} ({merged})'.format(**locals()))
