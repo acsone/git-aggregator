@@ -206,6 +206,12 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.2.1 (July, 12, 2018)
+----------------------
+
+* show-closed-prs now displays merge status
+* some documentation improvements
+
 1.2.0 (May, 17, 2017)
 ---------------------
 
@@ -243,6 +249,7 @@ Contributors
 * Jairo Llopis (Tecnativa_)
 * Stéphane Bidoul (ACSONE_)
 * Dave Lasley (LasLabs_)
+* Patric Tombez
 
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
