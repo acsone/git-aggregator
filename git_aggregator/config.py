@@ -134,8 +134,8 @@ def load_config(config, expand_env=False):
     if not os.path.exists(config):
         raise ConfigException('Unable to find configuration file: %s' % config)
 
-    fExt = os.path.splitext(config)[-1]
-    conf = kaptan.Kaptan(handler=fExt.lstrip('.'))
+    file_extension = os.path.splitext(config)[1][1:]
+    conf = kaptan.Kaptan(handler=kaptan.HANDLER_EXT.get(file_extension))
 
     if expand_env:
         with open(config, 'r') as file_handler:
