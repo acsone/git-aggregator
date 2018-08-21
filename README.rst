@@ -206,6 +206,8 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+* Mimic Kaptan's behavior of resolving handler by extension (#22)
+
 1.2.1 (July, 12, 2018)
 ----------------------
 
