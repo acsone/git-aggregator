@@ -11,7 +11,6 @@ import subprocess
 
 import requests
 
-from .utils import working_directory_keeper
 from .exception import GitAggregatorException
 from ._compat import console_to_str
 
@@ -166,25 +165,23 @@ class Repo(object):
         logger.info('Start aggregation of %s', self.cwd)
         target_dir = self.cwd
 
-        with working_directory_keeper:
-            is_new = not os.path.exists(target_dir)
-            if is_new:
-                self.init_repository(target_dir)
+        is_new = not os.path.exists(target_dir)
+        if is_new:
+            self.init_repository(target_dir)
 
-            os.chdir(target_dir)
-            self._switch_to_branch(self.target['branch'])
-            for r in self.remotes:
-                self._set_remote(**r)
-            self.fetch()
-            merges = self.merges
-            if not is_new:
-                # reset to the first merge
-                origin = merges[0]
-                merges = merges[1:]
-                self._reset_to(origin["remote"], origin["ref"])
-            for merge in merges:
-                self._merge(merge)
-            self._execute_shell_command_after()
+        self._switch_to_branch(self.target['branch'])
+        for r in self.remotes:
+            self._set_remote(**r)
+        self.fetch()
+        merges = self.merges
+        if not is_new:
+            # reset to the first merge
+            origin = merges[0]
+            merges = merges[1:]
+            self._reset_to(origin["remote"], origin["ref"])
+        for merge in merges:
+            self._merge(merge)
+        self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
 
     def init_repository(self, target_dir):
@@ -204,9 +201,7 @@ class Repo(object):
         remote = self.target['remote']
         branch = self.target['branch']
         logger.info("Push %s to %s", branch, remote)
-        with working_directory_keeper:
-            os.chdir(self.cwd)
-            self.log_call(['git', 'push', '-f', remote, branch])
+        self.log_call(['git', 'push', '-f', remote, branch], cwd=self.cwd)
 
     def _fetch_options(self, merge):
         """Get the fetch options from the given merge dict."""
@@ -227,17 +222,17 @@ class Repo(object):
         cmd = ['git', 'reset', '--hard', sha]
         if logger.getEffectiveLevel() != logging.DEBUG:
             cmd.insert(2, '--quiet')
-        self.log_call(cmd)
+        self.log_call(cmd, cwd=self.cwd)
 
     def _switch_to_branch(self, branch_name):
         # check if the branch already exists
         logger.info("Switch to branch %s", branch_name)
-        self.log_call(['git', 'checkout', '-B', branch_name])
+        self.log_call(['git', 'checkout', '-B', branch_name], cwd=self.cwd)
 
     def _execute_shell_command_after(self):
         logger.info('Execute shell after commands')
         for cmd in self.shell_command_after:
-            self.log_call(cmd, shell=True)
+            self.log_call(cmd, shell=True, cwd=self.cwd)
 
     def _merge(self, merge):
         logger.info("Pull %s, %s", merge["remote"], merge["ref"])
@@ -250,12 +245,13 @@ class Repo(object):
         if logger.getEffectiveLevel() != logging.DEBUG:
             cmd += ('--quiet',)
         cmd += self._fetch_options(merge) + (merge["remote"], merge["ref"])
-        self.log_call(cmd)
+        self.log_call(cmd, cwd=self.cwd)
 
     def _get_remotes(self):
         lines = self.log_call(
             ['git', 'remote', '-v'],
-            callwith=subprocess.check_output).splitlines()
+            callwith=subprocess.check_output,
+            cwd=self.cwd).splitlines()
         remotes = {}
         for line in lines:
             name, url = line.split('\t')
@@ -281,12 +277,12 @@ class Repo(object):
             return
         if not exising_url:
             logger.info('Adding remote %s <%s>', name, url)
-            self.log_call(['git', 'remote', 'add', name, url])
+            self.log_call(['git', 'remote', 'add', name, url], cwd=self.cwd)
         else:
             logger.info('Remote remote %s <%s> -> <%s>',
                         name, exising_url, url)
-            self.log_call(['git', 'remote', 'rm', name])
-            self.log_call(['git', 'remote', 'add', name, url])
+            self.log_call(['git', 'remote', 'rm', name], cwd=self.cwd)
+            self.log_call(['git', 'remote', 'add', name, url], cwd=self.cwd)
 
     def _github_api_get(self, path):
         url = 'https://api.github.com' + path

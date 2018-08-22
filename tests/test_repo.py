@@ -3,6 +3,7 @@
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
+import argparse
 import os
 import shutil
 import unittest
@@ -17,6 +18,8 @@ except ImportError:
     from urllib.request import pathname2url
 import logging
 from tempfile import mkdtemp
+from textwrap import dedent
+
 
 from git_aggregator.utils import WorkingDirectoryKeeper,\
     working_directory_keeper
@@ -46,7 +49,8 @@ def git_write_commit(repo_dir, filepath, contents, msg="Unit test commit"):
         with open(filepath, 'w') as f:
             f.write(contents)
         subprocess.call(['git', 'add', filepath])
-        subprocess.call(['git', 'commit', '-m', msg])
+        # Ignore local hooks with '-n'
+        subprocess.call(['git', 'commit', '-n', '-m', msg])
         return subprocess.check_output(
             ['git', 'rev-parse', '--verify', 'HEAD']).strip()
 
@@ -280,3 +284,58 @@ class TestRepo(unittest.TestCase):
         self.assertEqual(len(log_r1.splitlines()), 2)
         # Full fetch: all 3 commits
         self.assertEqual(len(log_r2.splitlines()), 2)
+
+    def test_multithreading(self):
+        """Clone two repos and do a merge in a third one, simultaneously."""
+        config_yaml = os.path.join(self.sandbox, 'config.yaml')
+        with open(config_yaml, 'w') as f:
+            f.write(dedent("""
+            ./repo1:
+                remotes:
+                    r1: %(r1_remote_url)s
+                merges:
+                    - r1 tag1
+                target: r1 agg
+            ./repo2:
+                remotes:
+                    r2: %(r2_remote_url)s
+                merges:
+                    - r2 b2
+                target: r2 agg
+            ./repo3:
+                remotes:
+                    r1: %(r1_remote_url)s
+                    r2: %(r2_remote_url)s
+                merges:
+                    - r1 tag1
+                    - r2 b2
+                target: r1 agg
+            """ % {
+                'r1_remote_url': self.url_remote1,
+                'r2_remote_url': self.url_remote2,
+            }))
+
+        args = argparse.Namespace(
+            command='aggregate',
+            config=config_yaml,
+            jobs=3,
+            dirmatch=None,
+            do_push=False,
+            expand_env=False)
+
+        with working_directory_keeper:
+            os.chdir(self.sandbox)
+            main.run(args)
+
+        repo1_dir = os.path.join(self.sandbox, 'repo1')
+        repo2_dir = os.path.join(self.sandbox, 'repo2')
+        repo3_dir = os.path.join(self.sandbox, 'repo3')
+
+        self.assertTrue(os.path.isfile(os.path.join(repo1_dir, 'tracked')))
+        self.assertFalse(os.path.isfile(os.path.join(repo1_dir, 'tracked2')))
+
+        self.assertTrue(os.path.isfile(os.path.join(repo2_dir, 'tracked')))
+        self.assertTrue(os.path.isfile(os.path.join(repo2_dir, 'tracked2')))
+
+        self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked')))
+        self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked2')))

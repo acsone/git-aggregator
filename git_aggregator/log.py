@@ -40,8 +40,13 @@ def default_log_template(self, record):
         '%(name)s',
         Fore.RESET, Style.RESET_ALL, ' '
     ]
+    threadName = [
+        ' ', Fore.BLUE, Style.DIM, Style.BRIGHT,
+        '%(threadName)s ',
+        Fore.RESET, Style.RESET_ALL, ' '
+    ]
 
-    tpl = "".join(reset + levelname + asctime + name + reset)
+    tpl = "".join(reset + levelname + asctime + name + threadName + reset)
 
     return tpl
 
@@ -59,7 +64,7 @@ class LogFormatter(logging.Formatter):
         except Exception as e:
             record.message = "Bad message (%r): %r" % (e, record.__dict__)
 
-        date_format = '%H:%m:%S'
+        date_format = '%H:%M:%S'
         record.asctime = time.strftime(
             date_format, self.converter(record.created)
         )
@@ -93,6 +98,11 @@ def debug_log_template(self, record):
         '%(name)s',
         Fore.RESET, Style.RESET_ALL, ' '
     ]
+    threadName = [
+        ' ', Fore.BLUE, Style.DIM, Style.BRIGHT,
+        '%(threadName)s ',
+        Fore.RESET, Style.RESET_ALL, ' '
+    ]
     module_funcName = [
         Fore.GREEN, Style.BRIGHT,
         '%(module)s.%(funcName)s()'
@@ -103,7 +113,8 @@ def debug_log_template(self, record):
     ]
 
     tpl = ''.join(
-        reset + levelname + asctime + name + module_funcName + lineno + reset
+        reset + levelname + asctime + name + threadName + module_funcName +
+        lineno + reset
     )
 
     return tpl

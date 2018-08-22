@@ -4,11 +4,19 @@
 
 import logging
 import os
+import sys
+import threading
+import traceback
+try:
+    from Queue import Queue, Empty as EmptyQueue
+except ImportError:
+    from queue import Queue, Empty as EmptyQueue
 
 import argparse
 import argcomplete
 import fnmatch
 
+from .utils import ThreadNameKeeper
 from .log import DebugLogFormatter
 from .log import LogFormatter
 from .config import load_config
@@ -100,6 +108,16 @@ def get_parser():
     )
 
     main_parser.add_argument(
+        '-j', '--jobs',
+        dest='jobs',
+        default=1,
+        type=int,
+        help='Amount of processes to use when aggregating repos. '
+             'This is useful when there are a lot of large repos. '
+             'Set `1` or less to disable multiprocessing (default).',
+    )
+
+    main_parser.add_argument(
         'command',
         nargs='?',
         default='aggregate',
@@ -159,20 +177,70 @@ def load_aggregate(args):
             r.push()
 
 
+def aggregate_repo(repo, args, sem, err_queue):
+    """Aggregate one repo according to the args.
+
+    Args:
+         repo (Repo): The repository to aggregate.
+         args (argparse.Namespace): CLI arguments.
+    """
+    try:
+        logger.debug('%s' % repo)
+        dirmatch = args.dirmatch
+        if not match_dir(repo.cwd, dirmatch):
+            logger.info("Skip %s", repo.cwd)
+            return
+        if args.command == 'aggregate':
+            repo.aggregate()
+            if args.do_push:
+                repo.push()
+        elif args.command == 'show-closed-prs':
+            repo.show_closed_prs()
+    except Exception:
+        err_queue.put_nowait(sys.exc_info())
+    finally:
+        sem.release()
+
+
 def run(args):
     """Load YAML and JSON configs and run the command specified
     in args.command"""
+
     repos = load_config(args.config, args.expand_env)
-    dirmatch = args.dirmatch
+
+    jobs = max(args.jobs, 1)
+    threads = []
+    sem = threading.Semaphore(jobs)
+    err_queue = Queue()
+
     for repo_dict in repos:
+        if not err_queue.empty():
+            break
+
+        sem.acquire()
         r = Repo(**repo_dict)
-        logger.debug('%s' % r)
-        if not match_dir(r.cwd, dirmatch):
-            logger.info("Skip %s", r.cwd)
-            continue
-        if args.command == 'aggregate':
-            r.aggregate()
-            if args.do_push:
-                r.push()
-        elif args.command == 'show-closed-prs':
-            r.show_closed_prs()
+        tname = os.path.basename(repo_dict['cwd'])
+
+        if jobs > 1:
+            t = threading.Thread(
+                target=aggregate_repo, args=(r, args, sem, err_queue))
+            t.daemon = True
+            t.name = tname
+            threads.append(t)
+            t.start()
+        else:
+            with ThreadNameKeeper():
+                threading.current_thread().name = tname
+                aggregate_repo(r, args, sem, err_queue)
+
+    for t in threads:
+        t.join()
+
+    if not err_queue.empty():
+        while True:
+            try:
+                exc_type, exc_obj, exc_trace = err_queue.get_nowait()
+            except EmptyQueue:
+                break
+            traceback.print_exception(exc_type, exc_obj, exc_trace)
+        sys.exit(1)
