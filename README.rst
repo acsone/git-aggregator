@@ -206,6 +206,11 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.4.0 (September 13, 2018)
+--------------------------
+
+* Add --jobs option for multi-process operation.
+
 1.3.0 (August 21, 2018)
 -----------------------
 
