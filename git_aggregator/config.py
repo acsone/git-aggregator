@@ -143,4 +143,4 @@ def load_config(config, expand_env=False):
             config = config.substitute(os.environ)
 
     conf.import_config(config)
-    return get_repos(conf.export('dict'))
+    return get_repos(conf.export('dict') or {})
