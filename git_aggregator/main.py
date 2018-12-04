@@ -106,6 +106,13 @@ def get_parser():
         action='store_true',
         help='Expand environment variables in configuration file',
     )
+    main_parser.add_argument(
+        '-f', '--force',
+        dest='force',
+        default=False,
+        action='store_true',
+        help='Force cleanup and aggregation on dirty repositories.',
+    )
 
     main_parser.add_argument(
         '-j', '--jobs',
@@ -206,7 +213,7 @@ def run(args):
     """Load YAML and JSON configs and run the command specified
     in args.command"""
 
-    repos = load_config(args.config, args.expand_env)
+    repos = load_config(args.config, args.expand_env, args.force)
 
     jobs = max(args.jobs, 1)
     threads = []

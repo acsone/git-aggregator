@@ -24,7 +24,7 @@ from textwrap import dedent
 from git_aggregator.utils import WorkingDirectoryKeeper,\
     working_directory_keeper
 from git_aggregator.repo import Repo
-from git_aggregator import main
+from git_aggregator import exception, main
 
 
 def git_get_last_rev(repo_dir):
@@ -246,6 +246,35 @@ class TestRepo(unittest.TestCase):
         # Shallow fetch: just 1 commmit
         self.assertEqual(len(log_shallow.splitlines()), 1)
 
+    def test_force(self):
+        """Ensure --force works fine."""
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        # Aggregate 1st time
+        repo_noforce = Repo(self.cwd, remotes, merges, target)
+        repo_noforce.aggregate()
+        # Create a dummy file to set the repo dirty
+        dummy_file = os.path.join(self.cwd, "dummy")
+        with open(dummy_file, "a"):
+            pass
+        # Aggregate 2nd time, dirty, which should fail
+        with self.assertRaises(exception.DirtyException):
+            repo_noforce.aggregate()
+        # Aggregate 3rd time, forcing, so it should work and remove that file
+        repo_force = Repo(self.cwd, remotes, merges, target, force=True)
+        repo_force.aggregate()
+        self.assertFalse(os.path.exists(dummy_file))
+
     def test_depth(self):
         """Ensure `depth` is used correctly."""
         remotes = [{
@@ -321,7 +350,9 @@ class TestRepo(unittest.TestCase):
             jobs=3,
             dirmatch=None,
             do_push=False,
-            expand_env=False)
+            expand_env=False,
+            force=False,
+        )
 
         with working_directory_keeper:
             os.chdir(self.sandbox)
