@@ -258,7 +258,7 @@ class Repo(object):
             url = url.split(' ')[0]
             v = remotes.setdefault(name, url)
             if v != url:
-                raise NotImplemented(
+                raise NotImplementedError(
                     'Different urls gor push and fetch for remote %s\n'
                     '%s != %s' % (name, url, v))
         return remotes
