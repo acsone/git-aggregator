@@ -11,7 +11,7 @@ import subprocess
 
 import requests
 
-from .exception import GitAggregatorException
+from .exception import DirtyException, GitAggregatorException
 from ._compat import console_to_str
 
 FETCH_DEFAULTS = ("depth", "shallow-since", "shallow-exclude")
@@ -37,7 +37,8 @@ class Repo(object):
     _git_version = None
 
     def __init__(self, cwd, remotes, merges, target,
-                 shell_command_after=None, fetch_all=False, defaults=None):
+                 shell_command_after=None, fetch_all=False, defaults=None,
+                 force=False):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -54,6 +55,8 @@ class Repo(object):
             for every configured remote.
         :param defaults:
             Collection of default parameters to be passed to git.
+        :param bool force:
+            When ``False``, it will stop if repo is dirty.
         """
         self.cwd = cwd
         self.remotes = remotes
@@ -65,6 +68,7 @@ class Repo(object):
         self.target = target
         self.shell_command_after = shell_command_after or []
         self.defaults = defaults or dict()
+        self.force = force
 
     @property
     def git_version(self):
@@ -203,6 +207,17 @@ class Repo(object):
         logger.info("Push %s to %s", branch, remote)
         self.log_call(['git', 'push', '-f', remote, branch], cwd=self.cwd)
 
+    def _check_status(self):
+        """Check repo status and except if dirty."""
+        logger.info('Checking repo status')
+        status = self.log_call(
+            ['git', 'status', '--porcelain'],
+            callwith=subprocess.check_output,
+            cwd=self.cwd,
+        )
+        if status:
+            raise DirtyException(status)
+
     def _fetch_options(self, merge):
         """Get the fetch options from the given merge dict."""
         cmd = tuple()
@@ -213,6 +228,8 @@ class Repo(object):
         return cmd
 
     def _reset_to(self, remote, ref):
+        if not self.force:
+            self._check_status()
         logger.info('Reset branch to %s %s', remote, ref)
         rtype, sha = self.query_remote_ref(remote, ref)
         if rtype is None and not ishex(ref):
@@ -223,6 +240,7 @@ class Repo(object):
         if logger.getEffectiveLevel() != logging.DEBUG:
             cmd.insert(2, '--quiet')
         self.log_call(cmd, cwd=self.cwd)
+        self.log_call(['git', 'clean', '-ffd'], cwd=self.cwd)
 
     def _switch_to_branch(self, branch_name):
         # check if the branch already exists

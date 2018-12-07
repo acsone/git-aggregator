@@ -13,3 +13,7 @@ class ConfigException(GitAggregatorException):
     """Malformed config definition
     """
     pass
+
+
+class DirtyException(GitAggregatorException):
+    """Repo directory is dirty"""

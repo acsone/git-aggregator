@@ -14,9 +14,10 @@ from ._compat import string_types
 log = logging.getLogger(__name__)
 
 
-def get_repos(config):
+def get_repos(config, force=False):
     """Return a :py:obj:`list` list of repos from config file.
     :param config: the repos config in :py:class:`dict` format.
+    :param bool force: Force aggregate dirty repos or not.
     :type config: dict
     :rtype: list
     """
@@ -27,6 +28,7 @@ def get_repos(config):
         repo_dict = {
             'cwd': directory,
             'defaults': repo_data.get('defaults', dict()),
+            'force': force,
         }
         remote_names = set()
         if 'remotes' in repo_data:
@@ -121,13 +123,14 @@ def get_repos(config):
     return repo_list
 
 
-def load_config(config, expand_env=False):
+def load_config(config, expand_env=False, force=False):
     """Return repos from a directory and fnmatch. Not recursive.
 
     :param config: paths to config file
     :type config: str
     :param expand_env: True to expand environment varialbes in the config.
     :type expand_env: bool
+    :param bool force: True to aggregate even if repo is dirty.
     :returns: expanded config dict item
     :rtype: iter(dict)
     """
@@ -143,4 +146,4 @@ def load_config(config, expand_env=False):
             config = config.substitute(os.environ)
 
     conf.import_config(config)
-    return get_repos(conf.export('dict') or {})
+    return get_repos(conf.export('dict') or {}, force)
