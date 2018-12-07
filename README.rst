@@ -206,6 +206,11 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.5.0 (December 07, 2018)
+-------------------------
+
+* Add --force. If set, dirty repositories will fail to aggregate.
+
 1.4.0 (September 13, 2018)
 --------------------------
 
