@@ -203,6 +203,8 @@ def aggregate_repo(repo, args, sem, err_queue):
                 repo.push()
         elif args.command == 'show-closed-prs':
             repo.show_closed_prs()
+        elif args.command == 'show-all-prs':
+            repo.show_all_prs()
     except Exception:
         err_queue.put_nowait(sys.exc_info())
     finally:
