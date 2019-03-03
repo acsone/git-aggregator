@@ -129,10 +129,12 @@ def get_parser():
         nargs='?',
         default='aggregate',
         help='aggregate (default): run the aggregation process.\n'
-             'show-closed-prs: show pull requests that are not open anymore\n'
-             '                 such pull requests are indentified as having\n'
-             '                 a github.com remote and a\n'
-             '                 refs/pull/NNN/head ref in the merge section.')
+             'show-all-prs: show GitHub pull requests in merge sections\n'
+             '              such pull requests are indentified as having\n'
+             '              a github.com remote and a\n'
+             '              refs/pull/NNN/head ref in the merge section.\n'
+             'show-closed-prs: show pull requests that are not open anymore.\n'
+    )
 
     return main_parser
 
@@ -152,7 +154,8 @@ def main():
 
     try:
         if args.config and \
-                args.command in ('aggregate', 'show-closed-prs'):
+                args.command in \
+                ('aggregate', 'show-closed-prs', 'show-all-prs'):
             run(args)
         else:
             parser.print_help()
