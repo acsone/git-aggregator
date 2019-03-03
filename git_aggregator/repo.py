@@ -152,14 +152,14 @@ class Repo(object):
 
     def log_call(self, cmd, callwith=subprocess.check_call,
                  log_level=logging.DEBUG, **kw):
-            """Wrap a subprocess call with logging
-            :param meth: the calling method to use.
-            """
-            logger.log(log_level, "%s> call %r", self.cwd, cmd)
-            ret = callwith(cmd, **kw)
-            if callwith == subprocess.check_output:
-                ret = console_to_str(ret)
-            return ret
+        """Wrap a subprocess call with logging
+        :param meth: the calling method to use.
+        """
+        logger.log(log_level, "%s> call %r", self.cwd, cmd)
+        ret = callwith(cmd, **kw)
+        if callwith == subprocess.check_output:
+            ret = console_to_str(ret)
+        return ret
 
     def aggregate(self):
         """ Aggregate all merges into the target branch
