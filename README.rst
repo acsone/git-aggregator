@@ -266,7 +266,10 @@ Contributors
 * Stéphane Bidoul (ACSONE_)
 * Dave Lasley (LasLabs_)
 * Patric Tombez
-
+* Cristian Moncho
+* Simone Orsi (camptocamp_)
+* Artem Kostyuk
+ 
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
 .. _camptocamp: https://www.camptocamp.com
