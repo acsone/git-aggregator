@@ -1,6 +1,7 @@
 # pydev
 .project
 .pydevproject
+.vscode
 .settings
 # Byte-compiled / optimized / DLL files
 __pycache__/
