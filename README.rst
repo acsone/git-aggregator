@@ -207,6 +207,12 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.6.0 (March 04, 2019)
+----------------------
+
+* Add --show-all-prs command to list all GitHub pull requests used
+  in merge sections.
+
 1.5.0 (December 07, 2018)
 -------------------------
 
