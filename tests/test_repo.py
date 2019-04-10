@@ -73,7 +73,8 @@ class TestRepo(unittest.TestCase):
              commit 1 -> fork after -> remote 2
              tag1
              commit 2
-        *remote2 (clone remote 1)
+             annotated tag2
+        * remote2 (clone remote 1)
              commit 1
              commit 3
              branch b2
@@ -94,6 +95,7 @@ class TestRepo(unittest.TestCase):
             subprocess.check_call(['git', 'tag', 'tag1'], cwd=self.remote1)
             self.commit_2_sha = git_write_commit(
                 self.remote1, 'tracked', "last", msg="last commit")
+            subprocess.check_call(['git', 'tag', '-am', 'foo', 'tag2'], cwd=self.remote1)
             self.commit_3_sha = git_write_commit(
                 self.remote2, 'tracked2', "remote2", msg="new commit")
             subprocess.check_call(['git', 'checkout', '-b', 'b2'],
@@ -121,6 +123,24 @@ class TestRepo(unittest.TestCase):
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_1_sha)
 
+    def test_annotated_tag(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag2'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_2_sha)
+
     def test_simple_merge(self):
         remotes = [{
             'name': 'r1',
@@ -146,8 +166,39 @@ class TestRepo(unittest.TestCase):
         self.assertEqual(last_rev, self.commit_3_sha)
         # push
         repo.push()
-        rtype, sha = repo.query_remote_ref('r1', 'agg')
-        self.assertEqual(rtype, 'branch')
+        rtype, ref, sha = list(repo.query_remote('r1', 'agg'))[0]
+        self.assertEquals(rtype, 'branch')
+        self.assertTrue(sha)
+
+    def test_simple_merge_2(self):
+        ## Launched from an existing git repository
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }, {
+            'remote': 'r2',
+            'ref': self.commit_3_sha
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        subprocess.call(['git', 'init', self.cwd])
+        repo = Repo(self.cwd, remotes, merges, target, fetch_all=True)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_3_sha)
+        # push
+        repo.push()
+        rtype, ref, sha = list(repo.query_remote('r1', 'agg'))[0]
+        self.assertEquals(rtype, 'branch')
         self.assertTrue(sha)
 
     def test_push_missing_remote(self):
