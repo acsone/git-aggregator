@@ -340,7 +340,6 @@ class Repo(object):
                 'pr': pull_mo.group('pr'),
             }
             pr_info['path'] = '{owner}/{repo}/pulls/{pr}'.format(**pr_info)
-            pr_info['url'] = 'https://github.com/{path}'.format(**pr_info)
             pr_info['shortcut'] = '{owner}/{repo}#{pr}'.format(**pr_info)
             r = self._github_api_get('/repos/{path}'.format(**pr_info))
             if r.status_code != 200:
@@ -349,9 +348,14 @@ class Repo(object):
                     'Reason: {r.status_code} {r.reason}'.format(r=r, **pr_info)
                 )
                 continue
-            pr_info['state'] = r.json().get('state')
+            rj = r.json()
+            pr_info['state'] = rj.get('state')
+            pr_info['url'] = rj.get('html_url')
+            pr_info['labels'] = ", ".join(
+                label['name'] for label in rj.get('labels')
+            )
             pr_info['merged'] = (
-                not r.json().get('merged') and 'not ' or ''
+                not rj.get('merged') and 'not ' or ''
             ) + 'merged'
             all_prs.setdefault(pr_info['state'], []).append(pr_info)
         return all_prs
@@ -361,7 +365,8 @@ class Repo(object):
         all_prs = self.collect_prs_info()
         for pr_info in all_prs.get('closed', []):
             logger.info(
-                '{url} in state {state} ({merged})'.format(**pr_info)
+                '{url} in state {state} ({merged}; labels: {labels})'
+                .format(**pr_info)
             )
 
     def show_all_prs(self):
