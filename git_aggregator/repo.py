@@ -351,6 +351,9 @@ class Repo(object):
             rj = r.json()
             pr_info['state'] = rj.get('state')
             pr_info['url'] = rj.get('html_url')
+            pr_info['labels'] = ", ".join(
+                label['name'] for label in rj.get('labels')
+            )
             pr_info['merged'] = (
                 not rj.get('merged') and 'not ' or ''
             ) + 'merged'
@@ -362,7 +365,8 @@ class Repo(object):
         all_prs = self.collect_prs_info()
         for pr_info in all_prs.get('closed', []):
             logger.info(
-                '{url} in state {state} ({merged})'.format(**pr_info)
+                '{url} in state {state} ({merged}; labels: {labels})'
+                .format(**pr_info)
             )
 
     def show_all_prs(self):

@@ -207,6 +207,12 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.7.0 (August 14, 2019)
+-----------------------
+
+* Fix a bug in ``--show-all-prs``, which was printing a wrong PR URL.
+* Display PR labels too in ``--show-all-prs``.
+
 1.6.0 (March 04, 2019)
 ----------------------
 
@@ -276,7 +282,7 @@ Contributors
 * Cristian Moncho
 * Simone Orsi (camptocamp_)
 * Artem Kostyuk
- 
+
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
 .. _camptocamp: https://www.camptocamp.com
