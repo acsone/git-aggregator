@@ -156,7 +156,11 @@ class Repo(object):
         :param meth: the calling method to use.
         """
         logger.log(log_level, "%s> call %r", self.cwd, cmd)
-        ret = callwith(cmd, **kw)
+        try:
+            ret = callwith(cmd, **kw)
+        except Exception:
+            logger.error("%s> error calling %r", self.cwd, cmd)
+            raise
         if callwith == subprocess.check_output:
             ret = console_to_str(ret)
         return ret

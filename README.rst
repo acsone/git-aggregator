@@ -207,6 +207,12 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.7.1 (September 30, 2019)
+--------------------------
+
+* If an error happens, log in which repo it happens. Helpful when running
+  in parallel.
+
 1.7.0 (August 14, 2019)
 -----------------------
 
