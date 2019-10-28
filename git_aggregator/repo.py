@@ -380,3 +380,20 @@ class Repo(object):
                 logger.info(
                     '{url} in state {state} ({merged})'.format(**pr_info)
                 )
+
+    def show_status(self):
+        """Log status in each repository, if there are local changes"""
+        status = self.log_call(
+            ['git', 'status', '--short'],
+            callwith=subprocess.check_output,
+            cwd=self.cwd
+        )
+        if status:
+            logger.info(
+                "{folder} : {qty} local change(s) found.\n"
+                "{status}".format(
+                    folder=self.cwd,
+                    qty=len(status.splitlines()),
+                    status=status,
+                ))
+        return status
