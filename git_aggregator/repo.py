@@ -381,19 +381,15 @@ class Repo(object):
                     '{url} in state {state} ({merged})'.format(**pr_info)
                 )
 
-    def show_status(self):
-        """Log status in each repository, if there are local changes"""
-        status = self.log_call(
-            ['git', 'status', '--short'],
+    def run_in(self, run_in_command):
+        """Run a custom shell command into the current repository
+        and log result, if any."""
+        result = self.log_call(
+            run_in_command.split(" "),
             callwith=subprocess.check_output,
             cwd=self.cwd
         )
-        if status:
-            logger.info(
-                "{folder} : {qty} local change(s) found.\n"
-                "{status}".format(
-                    folder=self.cwd,
-                    qty=len(status.splitlines()),
-                    status=status,
-                ))
-        return status
+        if result:
+            logger.info("{folder} : \n{result}".format(
+                folder=self.cwd, result=result))
+        return result
