@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © 2015 ACSONE SA/NV
+# © 2015-2019 ACSONE SA/NV
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 
 import logging
@@ -71,6 +71,7 @@ def get_parser():
         dest='config',
         type=str,
         nargs='?',
+        required=True,
         help='Pull the latest repositories from config(s)'
     ).completer = argcomplete.completers.FilesCompleter(
         allowednames=('.yaml', '.yml', '.json'), directories=False
@@ -124,16 +125,27 @@ def get_parser():
              'Set `1` or less to disable multiprocessing (default).',
     )
 
-    main_parser.add_argument(
-        'command',
-        nargs='?',
-        default='aggregate',
-        help='aggregate (default): run the aggregation process.\n'
-             'show-all-prs: show GitHub pull requests in merge sections\n'
-             '              such pull requests are indentified as having\n'
-             '              a github.com remote and a\n'
-             '              refs/pull/NNN/head ref in the merge section.\n'
-             'show-closed-prs: show pull requests that are not open anymore.\n'
+    sub_parsers = main_parser.add_subparsers(
+        title='commands',
+        dest='command',
+    )
+
+    sub_parsers.add_parser(
+        'aggregate',
+        help="run the aggregation process (the default if omitted)."
+    )
+    sub_parsers.add_parser(
+        'show-all-prs',
+        help=(
+            'show GitHub pull requests in merge sections\n'
+            'such pull requests are indentified as having\n'
+            'a github.com remote and a\n'
+            'refs/pull/NNN/head ref in the merge section.'
+        )
+    )
+    sub_parsers.add_parser(
+        'show-closed-prs',
+        help="show pull requests that are not open anymore."
     )
 
     return main_parser
@@ -147,18 +159,15 @@ def main():
     argcomplete.autocomplete(parser, always_complete_options=False)
 
     args = parser.parse_args()
+    if not args.command:
+        args.command = "aggregate"
 
     setup_logger(
         level=args.log_level
     )
 
     try:
-        if args.config and \
-                args.command in \
-                ('aggregate', 'show-closed-prs', 'show-all-prs'):
-            run(args)
-        else:
-            parser.print_help()
+        run(args)
     except KeyboardInterrupt:
         pass
 
