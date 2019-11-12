@@ -106,6 +106,12 @@ the ``dict`` alternate construction. If you need to disable a default in
                 ref: refs/pull/14859/head
         target: acsone 9.0
 
+It's also possible to set default values to all repositories
+
+.. code-block:: bash
+
+    $ gitaggregate -c repos.yaml --with-default depth:1
+
 Remember that you need to fetch at least the common ancestor of all merges for
 it to succeed.
 

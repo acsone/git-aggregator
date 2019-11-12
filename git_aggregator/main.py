@@ -21,6 +21,7 @@ from .log import DebugLogFormatter
 from .log import LogFormatter
 from .config import load_config
 from .repo import Repo
+from .exception import GitAggregatorException
 
 
 logger = logging.getLogger(__name__)
@@ -125,6 +126,17 @@ def get_parser():
     )
 
     main_parser.add_argument(
+        '--with-default',
+        dest='defaults',
+        type=str,
+        action='append',
+        help='Set global default values. '
+             'For instance, --with-default depth:1 will set depth '
+             'to `1` as a default for all repositories. '
+             'It won\'t override any value defined in the config file. ',
+        )
+
+    main_parser.add_argument(
         'command',
         nargs='?',
         default='aggregate',
@@ -219,6 +231,18 @@ def run(args):
     in args.command"""
 
     repos = load_config(args.config, args.expand_env, args.force)
+
+    if args.defaults:
+        try:
+            defaults = {
+                k: v for k, v in [i.split(':') for i in args.defaults]}
+        except Exception:
+            raise GitAggregatorException(
+                'Malformed default value. Verify that the format is '
+                '--with-default key:value')
+        for repo in repos:
+            for key, value in defaults.items():
+                repo['defaults'].setdefault(key, value)
 
     jobs = max(args.jobs, 1)
     threads = []
