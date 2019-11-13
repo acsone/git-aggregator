@@ -136,6 +136,24 @@ class TestConfig(unittest.TestCase):
         repos = config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(repos[0]['shell_command_after'], ['ls', 'echo'])
 
+    def test_load_dry(self):
+        config_yaml = """
+/product_attribute: https://github.com/OCA/product-attribute.git 12.0
+"""
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEquals(repos[0]['remotes'], [{
+            'name': 'origin',
+            'url': 'https://github.com/OCA/product-attribute.git'}])
+        self.assertEquals(repos[0]['merges'], [{
+            'remote': 'origin',
+            'ref': '12.0'}])
+        self.assertEquals(repos[0]['target'], {
+            'remote': 'origin',
+            'branch': '12.0'})
+        self.assertFalse(repos[0]['fetch_all'])
+        self.assertFalse(repos[0]['shell_command_after'])
+        self.assertFalse(repos[0]['defaults'])
+
     def test_load_remotes_exception(self):
         config_yaml = """
 /product_attribute:

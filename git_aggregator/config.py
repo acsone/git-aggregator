@@ -27,10 +27,27 @@ def get_repos(config, force=False):
             directory = os.path.abspath(directory)
         repo_dict = {
             'cwd': directory,
-            'defaults': repo_data.get('defaults', dict()),
             'force': force,
+            'defaults': dict(),
+            'fetch_all': False,
+            'shell_command_after': [],
         }
         remote_names = set()
+        # Handle DRY format
+        if isinstance(repo_data, string_types):
+            parts = repo_data.split(' ')
+            if len(parts) != 2:
+                raise ConfigException(
+                    '%s: Repository must be formatted as '
+                    '"url ref".' % directory)
+            repo_dict['remotes'] = [{'name': 'origin', 'url': parts[0]}]
+            repo_dict['merges'] = [{'remote': 'origin', 'ref': parts[1]}]
+            repo_dict['target'] = {'remote': 'origin', 'branch': parts[1]}
+            repo_list.append(repo_dict)
+            continue
+        # full format
+        if 'defaults' in repo_data:
+            repo_dict['defaults'] = repo_data.get('defaults', dict())
         if 'remotes' in repo_data:
             repo_dict['remotes'] = []
             remotes_data = repo_data['remotes'] or {}

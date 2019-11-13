@@ -44,6 +44,8 @@ Create a ``repos.yaml`` or ``repos.yml`` file:
         fetch_all:
             - oca
 
+    ./web: https://github.com/OCA/web.git 12.0
+
 Environment variables inside of this file will be expanded if the proper option is selected.
 
 Fetching only required branches
