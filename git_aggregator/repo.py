@@ -353,7 +353,7 @@ class Repo(object):
                 )
                 continue
             rj = r.json()
-            pr_info['state'] = rj.get('state')
+            pr_info.update(rj)
             pr_info['url'] = rj.get('html_url')
             pr_info['labels'] = ", ".join(
                 label['name'] for label in rj.get('labels')
