@@ -381,3 +381,16 @@ class Repo(object):
                 logger.info(
                     '{url} in state {state} ({merged})'.format(**pr_info)
                 )
+
+    def run_in(self, run_in_command):
+        """Run a custom shell command into the current repository
+        and log result, if any."""
+        result = self.log_call(
+            run_in_command.split(" "),
+            callwith=subprocess.check_output,
+            cwd=self.cwd
+        )
+        if result:
+            logger.info("{folder} : \n{result}".format(
+                folder=self.cwd, result=result))
+        return result

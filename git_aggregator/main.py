@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 _LOG_LEVEL_STRINGS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 
+_COMMAND_LIST = ['aggregate', 'show-closed-prs', 'show-all-prs', 'run-in']
+
 
 def _log_level_string_to_int(log_level_string):
     if log_level_string not in _LOG_LEVEL_STRINGS:
@@ -134,6 +136,15 @@ def get_parser():
              '              a github.com remote and a\n'
              '              refs/pull/NNN/head ref in the merge section.\n'
              'show-closed-prs: show pull requests that are not open anymore.\n'
+             'run-in: run a custom shell command, defined in the.\n'
+             '              --run-in-command argument.'
+    )
+
+    main_parser.add_argument(
+        '-ric', '--run-in-command',
+        dest='run_in_command',
+        type=str,
+        help='Command to run for each repository'
     )
 
     return main_parser
@@ -153,9 +164,7 @@ def main():
     )
 
     try:
-        if args.config and \
-                args.command in \
-                ('aggregate', 'show-closed-prs', 'show-all-prs'):
+        if args.config and args.command in _COMMAND_LIST:
             run(args)
         else:
             parser.print_help()
@@ -208,6 +217,8 @@ def aggregate_repo(repo, args, sem, err_queue):
             repo.show_closed_prs()
         elif args.command == 'show-all-prs':
             repo.show_all_prs()
+        elif args.command == 'run-in':
+            repo.run_in(args.run_in_command)
     except Exception:
         err_queue.put_nowait(sys.exc_info())
     finally:

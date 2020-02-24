@@ -204,6 +204,27 @@ To work around API limitation, you must first generate a
 
 .. _Github API token: https://github.com/settings/tokens
 
+Custom Run-in command
+=====================
+
+gitaggregate allows you to execute any custom command on all the repositories
+
+For exemple, if you want to know all the local diffs run:
+
+.. code-block:: bash
+
+   $ gitaggregate run-in --run-in-command 'git status --short'
+
+Result sample
+
+.. code-block:: bash
+
+    (INFO) [11:04:04] git_aggregator.repo  pos   Repo /opt/grap_dev/grap-odoo-env-8.0/src/pos :
+        R  pos_margin/__openerp__.py -> pos_margin/__manifest__.py
+        R  pos_order_load/__openerp__.py -> pos_order_load/__manifest__.py
+        ?? test/
+
+
 Changes
 =======
 
