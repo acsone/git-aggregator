@@ -141,7 +141,7 @@ class Repo(object):
         out = self.log_call(['git', 'ls-remote', remote, ref],
                             cwd=self.cwd,
                             callwith=subprocess.check_output).strip()
-        for sha, fullref in (l.split() for l in out.splitlines()):
+        for sha, fullref in (line.split() for line in out.splitlines()):
             if fullref == 'refs/heads/' + ref:
                 return 'branch', sha
             elif fullref == 'refs/tags/' + ref:
