@@ -123,13 +123,15 @@ def get_repos(config, force=False):
     return repo_list
 
 
-def load_config(config, expand_env=False, force=False):
+def load_config(config, expand_env=False, env_file=None, force=False):
     """Return repos from a directory and fnmatch. Not recursive.
 
     :param config: paths to config file
     :type config: str
-    :param expand_env: True to expand environment varialbes in the config.
+    :param expand_env: True to expand environment variables in the config.
     :type expand_env: bool
+    :param env_file: path to file with variables to add to the environment.
+    :type env_file: str or None
     :param bool force: True to aggregate even if repo is dirty.
     :returns: expanded config dict item
     :rtype: iter(dict)
@@ -141,9 +143,20 @@ def load_config(config, expand_env=False, force=False):
     conf = kaptan.Kaptan(handler=kaptan.HANDLER_EXT.get(file_extension))
 
     if expand_env:
+        environment = {}
+        if env_file is not None and os.path.isfile(env_file):
+            with open(env_file) as env_file_handler:
+                for line in env_file_handler:
+                    line = line.strip()
+                    if line.startswith('#'):
+                        continue
+                    if '=' in line:
+                        key, value = line.split('=')
+                        environment.update({key.strip(): value.strip()})
+        environment.update(os.environ)
         with open(config, 'r') as file_handler:
             config = Template(file_handler.read())
-            config = config.substitute(os.environ)
+            config = config.substitute(environment)
 
     conf.import_config(config)
     return get_repos(conf.export('dict') or {}, force)
