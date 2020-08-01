@@ -108,6 +108,12 @@ def get_parser():
         help='Expand environment variables in configuration file',
     )
     main_parser.add_argument(
+        '--env-file',
+        dest='env_file',
+        default=None,
+        help='Path to file with variables to be added to the environment',
+    )
+    main_parser.add_argument(
         '-f', '--force',
         dest='force',
         default=False,
@@ -183,7 +189,7 @@ def match_dir(cwd, dirmatch=None):
 def load_aggregate(args):
     """Load YAML and JSON configs and begin creating / updating , aggregating
     and pushing the repos (deprecated in favor or run())"""
-    repos = load_config(args.config, args.expand_env)
+    repos = load_config(args.config, args.expand_env, args.env_file)
     dirmatch = args.dirmatch
     for repo_dict in repos:
         r = Repo(**repo_dict)
@@ -227,7 +233,7 @@ def run(args):
     """Load YAML and JSON configs and run the command specified
     in args.command"""
 
-    repos = load_config(args.config, args.expand_env, args.force)
+    repos = load_config(args.config, args.expand_env, args.env_file, args.force)
 
     jobs = max(args.jobs, 1)
     threads = []
