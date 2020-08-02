@@ -356,7 +356,7 @@ class TestConfig(unittest.TestCase):
             """
         vars_env = """
             # comment
-            
+
             TEST_REPO=to be overridden by environ
             TEST_FOLDER = /test
             """
