@@ -233,7 +233,8 @@ def run(args):
     """Load YAML and JSON configs and run the command specified
     in args.command"""
 
-    repos = load_config(args.config, args.expand_env, args.env_file, args.force)
+    repos = load_config(
+        args.config, args.expand_env, args.env_file, args.force)
 
     jobs = max(args.jobs, 1)
     threads = []
