@@ -222,6 +222,11 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+1.8 (August, 28, 2020)
+----------------------
+
+* Support environment variables in the configuration file.
+
 1.7.1 (September 30, 2019)
 --------------------------
 
