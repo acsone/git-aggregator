@@ -169,12 +169,12 @@ Expand environment variables inside of the configuration file when loading:
 
     $ gitaggregate -c repos.yaml --expand-env
 
-The variable in the configuration file can be specified in one of the following ways:
+The variables in the configuration file can be specified in one of the following ways:
 
     - $VARIABLE
     - ${VARIABLE}
 
-For mor info, see the Python's string.Template documentation.
+For more information, see the Python's string.Template documentation.
 
 Use additional variables from file while expanding:
 
