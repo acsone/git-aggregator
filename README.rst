@@ -222,8 +222,8 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
-1.8 (August, 28, 2020)
-----------------------
+1.8.1 (August, 28, 2020)
+------------------------
 
 * Support environment variables in the configuration file.
 
@@ -300,6 +300,7 @@ Author
 Contributors
 ------------
 
+* Andrei Boyanov
 * Cyril Gaudin (camptocamp_)
 * Jairo Llopis (Tecnativa_)
 * Stéphane Bidoul (ACSONE_)
