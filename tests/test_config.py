@@ -343,6 +343,44 @@ class TestConfig(unittest.TestCase):
             remotes[0]['url'], os.environ['TEST_REPO']
         )
 
+    def test_import_config_expand_env_from_file(self):
+        """ It should expand the config with variables form file. """
+        os.environ['TEST_REPO'] = 'https://github.com/test/test.git'
+        data_yaml = """
+            ${TEST_FOLDER}:
+                remotes:
+                    oca: $TEST_REPO
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+            """
+        vars_env = """
+            # comment
+
+            TEST_REPO=to be overridden by environ
+            TEST_FOLDER = /test
+            """
+
+        _, env_path = tempfile.mkstemp(suffix='.env')
+        try:
+            with open(env_path, 'w') as env_file:
+                env_file.write(vars_env)
+                _, config_path = tempfile.mkstemp(suffix='.yaml')
+            with open(config_path, 'w') as config_file:
+                config_file.write(data_yaml)
+            repos = config.load_config(config_file.name, True, env_file.name)
+        finally:
+            if os.path.exists(env_path):
+                os.remove(env_path)
+            if os.path.exists(config_path):
+                os.remove(config_path)
+
+        self.assertEqual(repos[0]['cwd'], '/test')
+        remotes = repos[0]['remotes']
+        self.assertEqual(
+            remotes[0]['url'], os.environ['TEST_REPO']
+        )
+
     def test_fetch_all_string(self):
         config_yaml = """
             ./test:

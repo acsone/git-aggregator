@@ -351,6 +351,7 @@ class TestRepo(unittest.TestCase):
             dirmatch=None,
             do_push=False,
             expand_env=False,
+            env_file=None,
             force=False,
         )
 
