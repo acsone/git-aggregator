@@ -252,26 +252,14 @@ class TestConfig(unittest.TestCase):
         oca: https://github.com/OCA/product-attribute.git
     merges:
         - oca 8.0
-"""
-        with self.assertRaises(ConfigException) as ex:
-            config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(ex.exception.args[0],
-                          '/product_attribute: No target defined.')
-
-        config_yaml = """
-/product_attribute:
-    remotes:
-        oca: https://github.com/OCA/product-attribute.git
-    merges:
-        - oca 8.0
-    target:
+    target: oca 8.0 extra_arg
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
         self.assertEquals(
             ex.exception.args[0],
             '/product_attribute: Target must be formatted as '
-            '"remote_name branch_name"')
+            '"[remote_name] branch_name"')
 
         config_yaml = """
 /product_attribute:
@@ -286,6 +274,32 @@ class TestConfig(unittest.TestCase):
         self.assertEquals(
             ex.exception.args[0],
             '/product_attribute: Target remote oba not defined in remotes.')
+
+    def test_target_defaults(self):
+        config_yaml = """
+/product_attribute:
+    remotes:
+        oca: https://github.com/OCA/product-attribute.git
+    merges:
+        - oca 8.0
+    target: 8.0
+"""
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertDictEqual(
+            repos[0]["target"], {"branch": "8.0", "remote": None}
+        )
+
+        config_yaml = """
+/product_attribute:
+    remotes:
+        oca: https://github.com/OCA/product-attribute.git
+    merges:
+        - oca 8.0
+"""
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertDictEqual(
+            repos[0]["target"], {"branch": "_git_aggregated", "remote": None}
+        )
 
     def test_import_config__not_found(self):
         with self.assertRaises(ConfigException) as exc:

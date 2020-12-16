@@ -26,7 +26,6 @@ Create a ``repos.yaml`` or ``repos.yml`` file:
             - oca 8.0
             - oca refs/pull/105/head
             - oca refs/pull/106/head
-        target: acsone aggregated_branch_name
 
     ./connector-interfaces:
         remotes:
@@ -181,7 +180,8 @@ Use additional variables from file while expanding:
 
 The env file should contain `VAR=value` lines. Lines starting with # are ignored.
 
-You can also aggregate and automatically push the result to the target:
+You can also aggregate and automatically push the result to the target, if the
+``target`` option is configured:
 
 .. code-block:: bash
 
