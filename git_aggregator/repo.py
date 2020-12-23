@@ -275,15 +275,14 @@ class Repo(object):
         It returns a dict structure associating each (remote, ref) to their
         SHA in local repository.
         """
-        merges_requested = [(m["remote"], m["ref"])
-                            for m in self.merges]
         basecmd = ("git", "fetch")
         logger.info("Fetching required remotes")
         fetch_heads = {}
         ls_remote_refs = collections.defaultdict(list)  # to ls-query
-        while merges_requested:
-            remote, ref = merges_requested[0]
-            merges_requested = merges_requested[1:]
+        for merge in self.merges:
+            remote = merge["remote"]
+            ref = merge["ref"]
+            pin = merge.get("pin")
             cmd = (
                 basecmd +
                 self._fetch_options({"remote": remote, "ref": ref}) +
@@ -291,15 +290,30 @@ class Repo(object):
             if remote not in self.fetch_all:
                 cmd += (ref, )
             else:
+                if pin:
+                    # Probably solvable, but a little too tricky for me to
+                    # figure out right now
+                    raise GitAggregatorException(
+                        "Cannot use fetch_all with pin"
+                    )
                 ls_remote_refs[remote].append(ref)
             self.log_call(cmd, cwd=self.cwd)
-            with open(os.path.join(self.cwd, ".git", "FETCH_HEAD"), "r") as f:
-                for line in f:
-                    fetch_head, for_merge, _ = line.split("\t")
-                    if for_merge == "not-for-merge":
-                        continue
-                    break
-            fetch_heads[(remote, ref)] = fetch_head
+            if pin:
+                try:
+                    fetch_heads[(remote, ref)] = self.rev_parse(pin)
+                except Exception:
+                    logger.error(
+                        "Could not find pin %r after fetching %r", pin, ref
+                    )
+                    raise
+            else:
+                with open(os.path.join(self.cwd, ".git", "FETCH_HEAD")) as f:
+                    for line in f:
+                        fetch_head, for_merge, _ = line.split("\t")
+                        if for_merge == "not-for-merge":
+                            continue
+                        break
+                fetch_heads[(remote, ref)] = fetch_head
         if self.fetch_all:
             if self.fetch_all is True:
                 remotes = self.remotes
@@ -311,30 +325,15 @@ class Repo(object):
                     remote["url"],
                     ls_remote_refs[remote["name"]])
                 for _, ref, sha in refs:
-                    if (remote["name"], ref) in merges_requested:
-                        merges_requested.remove((remote["name"], ref))
                     fetch_heads[(remote["name"], ref)] = sha
-        if len(merges_requested):
-            # Last case: our ref is a sha and remote git repository does
-            # not support querying commit directly by SHA. In this case
-            # we need just to check if ref is actually SHA, and if we have
-            # this SHA locally.
-            for remote, ref in merges_requested:
-                if not re.search("[0-9a-f]{4,}", ref):
-                    raise ValueError("Could not resolv ref %r on remote %r"
-                                     % (ref, remote))
-            valid_local_shas = self.log_call(
-                ['git', 'rev-parse', '-v'] + [sha
-                                              for _r, sha in merges_requested],
-                cwd=self.cwd, callwith=subprocess.check_output
-            ).strip().splitlines()
-            for remote, sha in merges_requested:
-                if sha not in valid_local_shas:
-                    raise ValueError(
-                        "Could not find SHA ref %r after fetch on remote %r"
-                        % (ref, remote))
-                fetch_heads[(remote["name"], sha)] = sha
         return fetch_heads
+
+    def rev_parse(self, ref):
+        return self.log_call(
+            ["git", "rev-parse", "--verify", ref],
+            callwith=subprocess.check_output,
+            cwd=self.cwd,
+        ).strip()
 
     def push(self):
         remote = self.target['remote']
@@ -384,11 +383,7 @@ class Repo(object):
         logger.info("Switch to branch %s", branch_name)
         cmd = ['git', 'checkout', '-B', branch_name]
         if ref is not None:
-            sha1 = self.log_call(
-                ['git', 'rev-parse', ref],
-                callwith=subprocess.check_output,
-                cwd=self.cwd).strip()
-            cmd.append(sha1)
+            cmd.append(self.rev_parse(ref))
         self.log_call(cmd, cwd=self.cwd)
 
     def _execute_shell_command_after(self):

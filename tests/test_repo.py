@@ -451,3 +451,47 @@ class TestRepo(unittest.TestCase):
 
         self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked')))
         self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked2')))
+
+    def test_pinned_base(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'master',
+            'pin': self.commit_1_sha[:8]
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_1_sha)
+
+    def test_pinned_merge(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag2'
+        }, {
+            'remote': 'r2',
+            'ref': self.commit_3_sha,
+            'pin': self.commit_1_sha[:8]
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_2_sha)
