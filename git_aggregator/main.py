@@ -175,7 +175,7 @@ def main():
     try:
         run(args)
     except KeyboardInterrupt:
-        pass
+        return 1
 
 
 def match_dir(cwd, dirmatch=None):
