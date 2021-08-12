@@ -1,12 +1,10 @@
 .. image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
-.. image:: https://travis-ci.org/acsone/git-aggregator.svg?branch=master
-    :target: https://travis-ci.org/acsone/git-aggregator
-.. image:: https://coveralls.io/repos/acsone/git-aggregator/badge.png?branch=master
-    :target: https://coveralls.io/r/acsone/git-aggregator?branch=master
+.. image:: https://github.com/acsone/git-aggregator/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/acsone/git-aggregator/actions/workflows/ci.yml
 .. image:: https://img.shields.io/badge/python-2.7%2C%203.5%2C%203.6%2C%203.7-blue.svg
-    :alt: Python support: 2.7, 3.5, 3.6, 3.7
+    :alt: Python support: 3.6, 3.7, 3.8, 3.9, 3.10
 
 ==============
 git-aggregator
