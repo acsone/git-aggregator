@@ -224,6 +224,7 @@ Changes
 ----------------
 
 * Drop support for python < 3.6
+* Do not exit with success on KeyboardInterrupt
 
 1.8.1 (August, 28, 2020)
 ------------------------
