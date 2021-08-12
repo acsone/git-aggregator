@@ -3,8 +3,7 @@
     :alt: License: AGPL-3
 .. image:: https://github.com/acsone/git-aggregator/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/acsone/git-aggregator/actions/workflows/ci.yml
-.. image:: https://img.shields.io/badge/python-2.7%2C%203.5%2C%203.6%2C%203.7-blue.svg
-    :alt: Python support: 3.6, 3.7, 3.8, 3.9, 3.10
+.. image:: https://img.shields.io/pypi/pyversions/git-aggregator
 
 ==============
 git-aggregator
