@@ -222,6 +222,11 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+2.0 (Unreleased)
+----------------
+
+* Drop support for python < 3.6
+
 1.8.1 (August, 28, 2020)
 ------------------------
 

@@ -16,12 +16,11 @@ setuptools.setup(
         'License :: OSI Approved :: '
         'GNU Affero General Public License v3 or later (AGPLv3+)',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         "Topic :: Utilities",
         "Topic :: System :: Shells",
     ],
@@ -41,6 +40,7 @@ setuptools.setup(
         'colorama',
         'requests',
     ],
+    python_requires=">=3.6",
     entry_points=dict(
         console_scripts=['gitaggregate=git_aggregator.main:main']),
     test_suite='tests',
