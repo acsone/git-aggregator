@@ -1,4 +1,3 @@
----
 name: CI
 
 on:
@@ -26,6 +25,10 @@ jobs:
           python -m site
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install --upgrade virtualenv tox tox-gh-actions
+      - name: Configure git
+        run: |
+          git config --global user.name "test"
+          git config --global user.email "test.test@test.com"
       - name: "Run tox targets for ${{ matrix.python-version }}"
         run: |
           python -m tox
