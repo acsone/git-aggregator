@@ -42,6 +42,8 @@ Create a ``repos.yaml`` or ``repos.yml`` file:
 
 Environment variables inside of this file will be expanded if the proper option is selected.
 
+All the ``merges`` are combined into a single branch. By default this branch is called ``_git_aggregated`` but another name may be given in the ``target`` section.
+
 Fetching only required branches
 -------------------------------
 
