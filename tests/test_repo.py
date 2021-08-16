@@ -150,6 +150,34 @@ class TestRepo(unittest.TestCase):
         self.assertEquals(rtype, 'branch')
         self.assertTrue(sha)
 
+    def test_push_missing_remote(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }, {
+            'name': 'r2',
+            'url': self.url_remote2
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }, {
+            'remote': 'r2',
+            'ref': self.commit_3_sha
+        }]
+        target = {
+            'remote': None,
+            'branch': 'agg'
+        }
+        repo = Repo(self.cwd, remotes, merges, target, fetch_all=True)
+        repo.aggregate()
+        with self.assertRaises(exception.GitAggregatorException) as ex:
+            repo.push()
+        self.assertEquals(
+            ex.exception.args[0],
+            "Cannot push agg, no target remote configured"
+        )
+
     def test_update_aggregate(self):
         # in this test
         # * we'll aggregate a first time r1 master with r2
