@@ -93,16 +93,24 @@ def get_repos(config, force=False):
             repo_dict["fetch_all"] = frozenset((repo_dict["fetch_all"],))
         elif isinstance(repo_dict["fetch_all"], list):
             repo_dict["fetch_all"] = frozenset(repo_dict["fetch_all"])
-        if 'target' not in repo_data:
-            raise ConfigException('%s: No target defined.' % directory)
-        parts = (repo_data.get('target') or "") .split(' ')
-        if len(parts) != 2:
+
+        # Explicitly cast to str because e.g. `8.0` will be parsed as float
+        # There are many cases this doesn't handle, but the float one is common
+        # because of Odoo conventions
+        parts = str(repo_data.get('target', "")).split()
+        remote_name = None
+        if len(parts) == 0:
+            branch = "_git_aggregated"
+        elif len(parts) == 1:
+            branch = parts[0]
+        elif len(parts) == 2:
+            remote_name, branch = parts
+        else:
             raise ConfigException(
                 '%s: Target must be formatted as '
-                '"remote_name branch_name"' % directory)
+                '"[remote_name] branch_name"' % directory)
 
-        remote_name, branch = repo_data.get('target').split(' ')
-        if remote_name not in remote_names:
+        if remote_name is not None and remote_name not in remote_names:
             raise ConfigException(
                 '%s: Target remote %s not defined in remotes.' %
                 (directory, remote_name))
