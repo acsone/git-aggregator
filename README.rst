@@ -221,14 +221,15 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
-2.0 (Unreleased)
-----------------
+2.0 (August 17, 2021)
+---------------------
 
 * Drop support for python < 3.6
 * Do not exit with success on KeyboardInterrupt
+* Make ``target`` optional.
 
-1.8.1 (August, 28, 2020)
-------------------------
+1.8.1 (August 28, 2020)
+-----------------------
 
 * Support environment variables in the configuration file.
 
@@ -314,6 +315,7 @@ Contributors
 * Cristian Moncho
 * Simone Orsi (camptocamp_)
 * Artem Kostyuk
+* Jan Verbeek
 
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
