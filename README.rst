@@ -221,6 +221,11 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+2.1 (August 26, 2021)
+---------------------
+
+* Migrate Github API authentication to new spec (https://developer.github.com/changes/2020-02-10-deprecating-auth-through-query-param/)
+
 2.0 (August 17, 2021)
 ---------------------
 

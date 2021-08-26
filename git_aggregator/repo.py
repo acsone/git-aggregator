@@ -314,9 +314,10 @@ class Repo(object):
     def _github_api_get(self, path):
         url = 'https://api.github.com' + path
         token = os.environ.get('GITHUB_TOKEN')
+        headers = None
         if token:
-            url += '?access_token=' + token
-        return requests.get(url)
+            headers = {'Authorization': 'token %s' % token}
+        return requests.get(url, headers=headers)
 
     def collect_prs_info(self):
         """Collect all pending merge PRs info.
