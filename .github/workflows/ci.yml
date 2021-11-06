@@ -37,6 +37,8 @@ jobs:
         run: |
           git config --global user.name "test"
           git config --global user.email "test.test@test.com"
+          git config --global init.defaultBranch master
+          git config --global pull.rebase false
       - name: "Run tox targets for ${{ matrix.python-version }}"
         run: |
           python -m tox
