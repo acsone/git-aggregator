@@ -306,7 +306,7 @@ class Repo(object):
             logger.info('Adding remote %s <%s>', name, url)
             self.log_call(['git', 'remote', 'add', name, url], cwd=self.cwd)
         else:
-            logger.info('Remote remote %s <%s> -> <%s>',
+            logger.info('Updating remote %s <%s> -> <%s>',
                         name, exising_url, url)
             self.log_call(['git', 'remote', 'rm', name], cwd=self.cwd)
             self.log_call(['git', 'remote', 'add', name, url], cwd=self.cwd)
