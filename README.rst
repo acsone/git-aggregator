@@ -221,8 +221,8 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
-2.1.1 (October 20, 2021)
----------------------
+2.x.y (unreleased)
+------------------
 
 * When updating remotes the log message now states ``Updating remote`` instead of ``Remote remote``
 
