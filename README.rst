@@ -118,8 +118,8 @@ the aggregated directory.
 
     ./product_attribute:
         remotes:
-        oca: https://github.com/OCA/product-attribute.git
-        acsone: git+ssh://git@github.com/acsone/product-attribute.git
+            oca: https://github.com/OCA/product-attribute.git
+            acsone: git+ssh://git@github.com/acsone/product-attribute.git
         merges:
             - oca 8.0
         target: acsone aggregated_branch_name
@@ -127,8 +127,8 @@ the aggregated directory.
 
     ./connector-interfaces:
         remotes:
-        oca:  https://github.com/OCA/connector-interfaces.git
-        acsone:  https://github.com/acsone/connector-interfaces.git
+            oca:  https://github.com/OCA/connector-interfaces.git
+            acsone:  https://github.com/acsone/connector-interfaces.git
         merges:
             - oca 9.0
         target: acsone aggregated_branch_name
@@ -142,8 +142,8 @@ A real life example: applying a patch
 
     ./odoo:
         remotes:
-        oca: https://github.com/OCA/OCB.git
-        acsone: git@github.com/acsone/OCB.git
+            oca: https://github.com/OCA/OCB.git
+            acsone: git@github.com/acsone/OCB.git
         merges:
             - oca 9.0
         target: acsone aggregated_branch_name
