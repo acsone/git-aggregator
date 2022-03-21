@@ -298,7 +298,7 @@ class Repo(object):
 
     def _merge(self, merge):
         logger.info("Pull %s, %s", merge["remote"], merge["ref"])
-        cmd = ("git", "pull", "--no-rebase")
+        cmd = ("git", "pull", "--no-ff", "--no-rebase")
         if self.git_version >= (1, 7, 10):
             # --edit and --no-edit appear with Git 1.7.10
             # see Documentation/RelNotes/1.7.10.txt of Git
