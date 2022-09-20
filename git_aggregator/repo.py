@@ -139,7 +139,7 @@ class Repo(object):
                  notably if ref if a commit sha (they can't be queried)
         """
         out = self.log_call(['git', 'ls-remote', remote, ref],
-                            cwd=self.cwd,
+                            cwd=self.cwd if os.path.exists(self.cwd) else None,
                             callwith=subprocess.check_output).strip()
         for sha, fullref in (line.split() for line in out.splitlines()):
             if fullref == 'refs/heads/' + ref:
@@ -175,14 +175,14 @@ class Repo(object):
 
         is_new = not os.path.exists(target_dir)
         if is_new:
-            self.init_repository(target_dir)
+            cloned = self.init_repository(target_dir)
 
         self._switch_to_branch(self.target['branch'])
         for r in self.remotes:
             self._set_remote(**r)
         self.fetch()
         merges = self.merges
-        if not is_new:
+        if not is_new or cloned:
             # reset to the first merge
             origin = merges[0]
             merges = merges[1:]
@@ -193,8 +193,44 @@ class Repo(object):
         logger.info('End aggregation of %s', self.cwd)
 
     def init_repository(self, target_dir):
-        logger.info('Init empty git repository in %s', target_dir)
-        self.log_call(['git', 'init', target_dir])
+        """Inits the local repository
+
+        If a remote is specified as a target, it will be cloned.
+        If the target has an associated branch, and that branch exists in the
+        remote repository, the clone will be limited to that branch.
+        If there is not a valid specified target, an empty repository will be
+        initialized.
+
+        :return: True if the repository was cloned
+                 False otherwise
+        """
+        repository = None
+        for remote in self.remotes:
+            if remote["name"] == self.target["remote"]:
+                repository = remote["url"]
+                break
+        branch = self.target["branch"]
+        # If no target is defined, init an empty repository
+        if not repository:
+            logger.info('Init empty git repository in %s', target_dir)
+            self.log_call(['git', 'init', target_dir])
+            return False
+        # If a target is defined, use it as the base repository
+        logger.info(
+            'Cloning git repository %s in %s',
+            repository,
+            target_dir,
+        )
+        cmd = ('git', 'clone')
+        # Try to clone target branch, if it exists
+        rtype, _sha = self.query_remote_ref(repository, branch)
+        if rtype in {'branch', 'tag'}:
+            cmd += ('-b', branch)
+        # Emtpy fetch options to use global default for 1st clone
+        cmd += self._fetch_options({})
+        cmd += (repository, target_dir)
+        self.log_call(cmd)
+        return True
 
     def fetch(self):
         basecmd = ("git", "fetch")
