@@ -32,7 +32,7 @@ class TestConfig(unittest.TestCase):
     target: acsone aggregated_branch_name
         """
         repos = config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(len(repos), 1)
+        self.assertEqual(len(repos), 1)
         # remotes are configured as dict therefore the order is not preserved
         # when parsed
         remotes = repos[0]['remotes']
@@ -79,7 +79,7 @@ class TestConfig(unittest.TestCase):
                 target: acsone aggregated_branch_name
         """)
         repos = config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(len(repos), 1)
+        self.assertEqual(len(repos), 1)
         # remotes are configured as dict therefore the order is not preserved
         # when parsed
         remotes = repos[0]['remotes']
@@ -120,7 +120,7 @@ class TestConfig(unittest.TestCase):
     shell_command_after: ls
         """
         repos = config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(repos[0]['shell_command_after'], ['ls'])
+        self.assertEqual(repos[0]['shell_command_after'], ['ls'])
         config_yaml = """
 /product_attribute:
     remotes:
@@ -134,7 +134,7 @@ class TestConfig(unittest.TestCase):
         - echo
         """
         repos = config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(repos[0]['shell_command_after'], ['ls', 'echo'])
+        self.assertEqual(repos[0]['shell_command_after'], ['ls', 'echo'])
 
     def test_load_remotes_exception(self):
         config_yaml = """
@@ -145,7 +145,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: remotes is not defined.')
 
@@ -158,7 +158,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: You should at least define one remote.')
 
@@ -172,7 +172,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: No url defined for remote oca.')
 
@@ -185,7 +185,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: merges is not defined.')
 
@@ -199,7 +199,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: Merge must be formatted as '
             '"remote_name ref".')
@@ -212,7 +212,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: You should at least define one merge.')
 
@@ -226,7 +226,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: Merge remote oba not defined in remotes.')
 
@@ -241,7 +241,7 @@ class TestConfig(unittest.TestCase):
         """)
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/web: Merge lacks mandatory `remote` or `ref` keys.')
 
@@ -256,7 +256,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: Target must be formatted as '
             '"[remote_name] branch_name"')
@@ -271,7 +271,7 @@ class TestConfig(unittest.TestCase):
 """
         with self.assertRaises(ConfigException) as ex:
             config.get_repos(self._parse_config(config_yaml))
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: Target remote oba not defined in remotes.')
 
@@ -325,7 +325,7 @@ class TestConfig(unittest.TestCase):
                 config_file.write(data_yaml)
 
             repos = config.load_config(config_file.name)
-            self.assertEquals(len(repos), 1)
+            self.assertEqual(len(repos), 1)
         finally:
             if os.path.exists(config_path):
                 os.remove(config_path)

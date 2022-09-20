@@ -147,7 +147,7 @@ class TestRepo(unittest.TestCase):
         # push
         repo.push()
         rtype, sha = repo.query_remote_ref('r1', 'agg')
-        self.assertEquals(rtype, 'branch')
+        self.assertEqual(rtype, 'branch')
         self.assertTrue(sha)
 
     def test_push_missing_remote(self):
@@ -173,7 +173,7 @@ class TestRepo(unittest.TestCase):
         repo.aggregate()
         with self.assertRaises(exception.GitAggregatorException) as ex:
             repo.push()
-        self.assertEquals(
+        self.assertEqual(
             ex.exception.args[0],
             "Cannot push agg, no target remote configured"
         )
