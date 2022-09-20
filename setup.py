@@ -5,7 +5,7 @@
 import setuptools
 
 setuptools.setup(
-    name='git-aggregator',
+    name='git_aggregator',
     use_scm_version=True,
     description='A program to aggregate git branches from different remotes '
                 'into a consolidated one',
