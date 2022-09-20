@@ -221,7 +221,7 @@ class Repo(object):
             repository,
             target_dir,
         )
-        cmd = ('git', 'clone')
+        cmd = ('git', 'clone', '--filter=blob:none')
         # Try to clone target branch, if it exists
         rtype, _sha = self.query_remote_ref(repository, branch)
         if rtype in {'branch', 'tag'}:
