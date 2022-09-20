@@ -225,7 +225,7 @@ Changes
 ------------------
 
 * When updating remotes the log message now states ``Updating remote`` instead of ``Remote remote``
-
+* Add ``--no-color`` option to disable colored output
 
 2.1 (August 26, 2021)
 ---------------------
