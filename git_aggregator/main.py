@@ -14,6 +14,7 @@ except ImportError:
 
 import argparse
 import argcomplete
+import colorama
 import fnmatch
 
 from .utils import ThreadNameKeeper
@@ -131,6 +132,14 @@ def get_parser():
              'Set `1` or less to disable multiprocessing (default).',
     )
 
+    main_parser.add_argument(
+        '--no-color',
+        dest='no_color',
+        default=False,
+        action='store_true',
+        help='Disable color in output',
+    )
+
     sub_parsers = main_parser.add_subparsers(
         title='commands',
         dest='command',
@@ -165,6 +174,8 @@ def main():
     argcomplete.autocomplete(parser, always_complete_options=False)
 
     args = parser.parse_args()
+    if args.no_color:
+        colorama.init(strip=True)
     if not args.command:
         args.command = "aggregate"
 
