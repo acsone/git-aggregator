@@ -226,6 +226,7 @@ Changes
 
 * When updating remotes the log message now states ``Updating remote`` instead of ``Remote remote``
 * Add ``--no-color`` option to disable colored output
+* Use git clone --filter=blob:none + fetch strategy to improve performance and benefit from ``git-autoshare`` if installed
 
 2.1 (August 26, 2021)
 ---------------------
