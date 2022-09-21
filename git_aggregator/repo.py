@@ -221,7 +221,13 @@ class Repo(object):
             repository,
             target_dir,
         )
-        cmd = ('git', 'clone', '--filter=blob:none')
+        cmd = ('git', 'clone')
+        if self.git_version >= (2, 17):
+            # Git added support for partial clone in 2.17
+            # https://git-scm.com/docs/partial-clone
+            # Speeds up cloning by functioning without a complete copy of
+            # repository
+            cmd += ('--filter=blob:none',)
         # Try to clone target branch, if it exists
         rtype, _sha = self.query_remote_ref(repository, branch)
         if rtype in {'branch', 'tag'}:
