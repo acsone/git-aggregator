@@ -221,6 +221,11 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+3.0.1 (2022-09-21)
+------------------
+
+* Fix git clone issue with git < 2.17
+
 3.0.0 (2022-09-20)
 ------------------
 
