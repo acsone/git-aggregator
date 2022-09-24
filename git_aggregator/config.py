@@ -117,6 +117,7 @@ def get_repos(config, force=False):
         repo_dict['target'] = {
             'remote': remote_name,
             'branch': branch,
+            'tag': repo_data.get('tag_target', False),
         }
         commands = []
         if 'shell_command_after' in repo_data:

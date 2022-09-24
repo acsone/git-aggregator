@@ -49,7 +49,8 @@ class TestConfig(unittest.TestCase):
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
-                        'remote': 'acsone'}})
+                        'remote': 'acsone',
+                        'tag': False}})
         assertfn = self.assertItemsEqual if PY2 else self.assertCountEqual
         assertfn(
             remotes,
@@ -77,6 +78,7 @@ class TestConfig(unittest.TestCase):
                         remote: oca
                         ref: refs/pull/106/head
                 target: acsone aggregated_branch_name
+                tag_target: True
         """)
         repos = config.get_repos(self._parse_config(config_yaml))
         self.assertEqual(len(repos), 1)
@@ -96,7 +98,8 @@ class TestConfig(unittest.TestCase):
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
-                        'remote': 'acsone'}})
+                        'remote': 'acsone',
+                        'tag': True}})
         assertfn = self.assertItemsEqual if PY2 else self.assertCountEqual
         assertfn(
             remotes,
@@ -286,7 +289,7 @@ class TestConfig(unittest.TestCase):
 """
         repos = config.get_repos(self._parse_config(config_yaml))
         self.assertDictEqual(
-            repos[0]["target"], {"branch": "8.0", "remote": None}
+            repos[0]["target"], {"branch": "8.0", "remote": None, "tag": False}
         )
 
         config_yaml = """
@@ -298,7 +301,9 @@ class TestConfig(unittest.TestCase):
 """
         repos = config.get_repos(self._parse_config(config_yaml))
         self.assertDictEqual(
-            repos[0]["target"], {"branch": "_git_aggregated", "remote": None}
+            repos[0]["target"], {
+                "branch": "_git_aggregated", "remote": None, "tag": False
+            }
         )
 
     def test_import_config__not_found(self):

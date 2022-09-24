@@ -32,7 +32,9 @@ def git_get_last_rev(repo_dir):
     """
     with working_directory_keeper:
         os.chdir(repo_dir)
-        p = subprocess.check_output(['git', 'rev-parse', '--verify', 'HEAD'])
+        p = subprocess.check_output(
+            ['git', 'rev-parse', '--verify', 'HEAD'], universal_newlines=True
+        )
         return p.strip()
 
 
@@ -52,7 +54,9 @@ def git_write_commit(repo_dir, filepath, contents, msg="Unit test commit"):
         # Ignore local hooks with '-n'
         subprocess.call(['git', 'commit', '-n', '-m', msg])
         return subprocess.check_output(
-            ['git', 'rev-parse', '--verify', 'HEAD']).strip()
+            ['git', 'rev-parse', '--verify', 'HEAD'],
+            universal_newlines=True
+        ).strip()
 
 
 def path2url(path):
@@ -399,3 +403,29 @@ class TestRepo(unittest.TestCase):
 
         self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked')))
         self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked2')))
+
+    def test_push_tag(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1',
+            'tag': True,
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_1_sha)
+        repo.push()
+        remote_tags = subprocess.check_output(
+            ["git", "ls-remote", "-t", self.url_remote1],
+            cwd=self.cwd,
+            universal_newlines=True,
+        )
+        assert f"{last_rev}\trefs/tags/agg1-{last_rev}\n" in remote_tags

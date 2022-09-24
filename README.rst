@@ -136,7 +136,7 @@ the aggregated directory.
             - echo 'a first command'
             - echo 'a second command'
 
-A real life example: applying a patch
+A real life example: applying a patch and tagging the target when pushing.
 
 .. code-block:: yaml
 
@@ -147,6 +147,7 @@ A real life example: applying a patch
         merges:
             - oca 9.0
         target: acsone aggregated_branch_name
+        tag_target: True
         shell_command_after:
             - git am "$(git format-patch -1 XXXXXX -o ../patches)"
 
@@ -185,6 +186,11 @@ The env file should contain `VAR=value` lines. Lines starting with # are ignored
 You can also aggregate and automatically push the result to the target, if the
 ``target`` option is configured:
 
+If ``tag_target`` is set to True, when pushing, the target will be tagged with the name
+of the the ``target`` branch followed by the commit sha. This is useful to ensure that
+the target commits remain reachable after force-pushing the target branch in subsequent
+git-aggregator runs.
+
 .. code-block:: bash
 
     $ gitaggregate -c repos.yaml -p
@@ -220,6 +226,11 @@ To work around API limitation, you must first generate a
 
 Changes
 =======
+
+3.1.0 (unreleased)
+------------------
+
+* Add ``tag_target`` repo configuration flag
 
 3.0.1 (2022-09-21)
 ------------------
