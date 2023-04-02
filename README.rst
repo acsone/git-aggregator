@@ -221,6 +221,12 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+UNRELEASED
+------------------
+
+* Replace Kaptan with PyYAML.
+
+
 3.0.1 (2022-09-21)
 ------------------
 

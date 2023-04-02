@@ -6,10 +6,10 @@ import logging
 import os
 from string import Template
 
-import kaptan
+import yaml
+
 from .exception import ConfigException
 from ._compat import string_types
-
 
 log = logging.getLogger(__name__)
 
@@ -148,7 +148,6 @@ def load_config(config, expand_env=False, env_file=None, force=False):
         raise ConfigException('Unable to find configuration file: %s' % config)
 
     file_extension = os.path.splitext(config)[1][1:]
-    conf = kaptan.Kaptan(handler=kaptan.HANDLER_EXT.get(file_extension))
 
     if expand_env:
         environment = {}
@@ -166,5 +165,16 @@ def load_config(config, expand_env=False, env_file=None, force=False):
             config = Template(file_handler.read())
             config = config.substitute(environment)
 
-    conf.import_config(config)
-    return get_repos(conf.export('dict') or {}, force)
+    if os.path.isfile(config):
+        if file_extension in ["yaml", "yml"]:
+            config = open(config, 'r').read()
+        else:
+            raise NotImplementedError(
+                f"{file_extension} not supported in {config}")
+
+    conf = yaml.load(
+        config,
+        Loader=yaml.SafeLoader,
+    )
+
+    return get_repos(conf or {}, force)

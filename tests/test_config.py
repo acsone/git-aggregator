@@ -4,8 +4,9 @@
 import os
 import tempfile
 import unittest
-import kaptan
 from textwrap import dedent
+
+import yaml
 
 from git_aggregator import config
 from git_aggregator.exception import ConfigException
@@ -15,9 +16,11 @@ from git_aggregator._compat import PY2
 class TestConfig(unittest.TestCase):
 
     def _parse_config(self, config_str):
-        conf = kaptan.Kaptan(handler='yaml')
-        conf.import_config(config_str)
-        return conf.export('dict')
+        content = yaml.load(
+            config_str,
+            Loader=yaml.SafeLoader,
+        )
+        return content
 
     def test_load(self):
         config_yaml = """
