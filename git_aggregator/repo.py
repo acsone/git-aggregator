@@ -155,11 +155,13 @@ class Repo(object):
             for ref in refs:
                 yield None, ref, ref
             return
-        for sha, fullref in (l.split() for l in out.splitlines()):
+        for sha, fullref in (line.split() for line in out.splitlines()):
             if fullref.startswith('refs/heads/'):
-                yield 'branch', fullref, sha
+                ref = fullref.split("/")[-1]
+                yield 'branch', ref, sha
             elif fullref.startswith('refs/tags/'):
-                yield 'tag', fullref, sha
+                ref = fullref.split("/")[-1]
+                yield 'tag', ref, sha
             elif fullref == 'HEAD':
                 yield 'HEAD', fullref, sha
             else:
@@ -255,7 +257,7 @@ class Repo(object):
             # repository
             cmd += ('--filter=blob:none',)
         # Try to clone target branch, if it exists
-        rtype, _sha = self.query_remote_ref(repository, branch)
+        rtype, _ref, _sha = list(self.query_remote(repository, branch))[0]
         if rtype in {'branch', 'tag'}:
             cmd += ('-b', branch)
         # Emtpy fetch options to use global default for 1st clone
@@ -342,7 +344,10 @@ class Repo(object):
                 "Cannot push %s, no target remote configured" % branch
             )
         logger.info("Push %s to %s", branch, remote)
-        self.log_call(['git', 'push', '-f', remote, "HEAD:%s" % branch], cwd=self.cwd)
+        self.log_call(
+            ['git', 'push', '-f', remote, "HEAD:%s" % branch],
+            cwd=self.cwd
+        )
 
     def _check_status(self):
         """Check repo status and except if dirty."""
@@ -392,8 +397,7 @@ class Repo(object):
             self.log_call(cmd, shell=True, cwd=self.cwd)
 
     def _merge(self, merge):
-        logger.info("Merge %s, %s", merge["remote"], merge["ref"])
-        cmd = ("git", "merge")
+        cmd = ("git", "merge", "--ff")
         if self.git_version >= (1, 7, 10):
             # --edit and --no-edit appear with Git 1.7.10
             # see Documentation/RelNotes/1.7.10.txt of Git

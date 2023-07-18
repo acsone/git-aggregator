@@ -95,7 +95,8 @@ class TestRepo(unittest.TestCase):
             subprocess.check_call(['git', 'tag', 'tag1'], cwd=self.remote1)
             self.commit_2_sha = git_write_commit(
                 self.remote1, 'tracked', "last", msg="last commit")
-            subprocess.check_call(['git', 'tag', '-am', 'foo', 'tag2'], cwd=self.remote1)
+            subprocess.check_call(['git', 'tag', '-am', 'foo', 'tag2'],
+                                  cwd=self.remote1)
             self.commit_3_sha = git_write_commit(
                 self.remote2, 'tracked2', "remote2", msg="new commit")
             subprocess.check_call(['git', 'checkout', '-b', 'b2'],
@@ -171,7 +172,7 @@ class TestRepo(unittest.TestCase):
         self.assertTrue(sha)
 
     def test_simple_merge_2(self):
-        ## Launched from an existing git repository
+        # Launched from an existing git repository
         remotes = [{
             'name': 'r1',
             'url': self.url_remote1
