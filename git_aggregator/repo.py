@@ -165,6 +165,18 @@ class Repo(object):
             ret = console_to_str(ret)
         return ret
 
+    def get_sha(self, branch):
+        """Get the sha of the given branch
+        :param branch: the branch to get the sha from
+        :return: the sha of the given branch
+        """
+        return self.log_call(
+            ['git', 'rev-parse', branch],
+            cwd=self.cwd,
+            universal_newlines=True,
+            callwith=subprocess.check_output
+        ).strip()
+
     def aggregate(self):
         """ Aggregate all merges into the target branch
         If the target_dir doesn't exist, create an empty git repo otherwise
@@ -256,6 +268,11 @@ class Repo(object):
             )
         logger.info("Push %s to %s", branch, remote)
         self.log_call(['git', 'push', '-f', remote, branch], cwd=self.cwd)
+        if self.target.get('tag'):
+            tag = branch + "-" + self.get_sha(branch)
+            logger.info("Create and push tag %s to %s", tag, remote)
+            self.log_call(['git', 'tag', tag], cwd=self.cwd)
+            self.log_call(['git', 'push', remote, tag], cwd=self.cwd)
 
     def _check_status(self):
         """Check repo status and except if dirty."""
