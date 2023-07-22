@@ -221,6 +221,10 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+4.0 (2023-07-22)
+----------------
+
+* [BREAKING] drop support for other configuration file formats than yaml
 * Ensure git pull is always done in fast-forward mode
 
 3.0.1 (2022-09-21)
