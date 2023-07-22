@@ -221,6 +221,8 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+* Ensure git pull is always done in fast-forward mode
+
 3.0.1 (2022-09-21)
 ------------------
 
