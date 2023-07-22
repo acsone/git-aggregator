@@ -3,6 +3,9 @@
     :alt: License: AGPL-3
 .. image:: https://github.com/acsone/git-aggregator/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/acsone/git-aggregator/actions/workflows/ci.yml
+.. image:: https://results.pre-commit.ci/badge/github/acsone/git-aggregator/master.svg
+   :target: https://results.pre-commit.ci/latest/github/acsone/git-aggregator/master
+   :alt: pre-commit.ci status
 .. image:: https://img.shields.io/pypi/pyversions/git-aggregator
 
 ==============
@@ -226,6 +229,7 @@ Changes
 
 * [BREAKING] drop support for other configuration file formats than yaml
 * Ensure git pull is always done in fast-forward mode
+* Drop support for python 3.6, test with python 3.11
 
 3.0.1 (2022-09-21)
 ------------------
