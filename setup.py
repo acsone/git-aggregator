@@ -36,7 +36,7 @@ setuptools.setup(
         'setuptools_scm',
     ],
     install_requires=[
-        'kaptan',
+        'PyYAML>=5',
         'argcomplete',
         'colorama',
         'requests',
