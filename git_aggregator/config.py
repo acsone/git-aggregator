@@ -58,19 +58,23 @@ def get_repos(config, force=False):
                 try:
                     # Assume parts is a str
                     parts = merge.split(' ')
-                    if len(parts) != 2:
+                    if len(parts) not in {2, 3}:
                         raise ConfigException(
                             '%s: Merge must be formatted as '
-                            '"remote_name ref".' % directory)
+                            '"remote_name ref [pin]".' % directory)
                     merge = {
                         "remote": parts[0],
                         "ref": parts[1],
                     }
+                    if len(parts) == 3:
+                        merge["pin"] = parts[2]
                 except AttributeError:
                     # Parts is a dict
                     try:
                         merge["remote"] = str(merge["remote"])
                         merge["ref"] = str(merge["ref"])
+                        if merge.get("pin"):
+                            merge["pin"] = str(merge["pin"])
                     except KeyError:
                         raise ConfigException(
                             '%s: Merge lacks mandatory '

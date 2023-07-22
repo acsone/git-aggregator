@@ -3,11 +3,14 @@
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
+
 from __future__ import unicode_literals
+
 import os
 import logging
 import re
 import subprocess
+import collections
 
 import requests
 
@@ -131,24 +134,40 @@ class Repo(object):
                              "report this" % v_str)
         return version
 
-    def query_remote_ref(self, remote, ref):
-        """Query remote repo about given ref.
-        :return: ``('tag', sha)`` if ref is a tag in remote
+    def query_remote(self, remote, refs=None):
+        """Query remote repo optionaly about given refs
+
+        :return: iterator of
+                 ``('tag', sha)`` if ref is a tag in remote
                  ``('branch', sha)`` if ref is branch (aka "head") in remote
                  ``(None, ref)`` if ref does not exist in remote. This happens
                  notably if ref if a commit sha (they can't be queried)
         """
-        out = self.log_call(['git', 'ls-remote', remote, ref],
+        cmd = ['git', 'ls-remote', remote]
+        if refs is not None:
+            if isinstance(refs, str):
+                refs = [refs]
+            cmd += refs
+        out = self.log_call(cmd,
                             cwd=self.cwd if os.path.exists(self.cwd) else None,
                             callwith=subprocess.check_output).strip()
+        if len(out) == 0:
+            for ref in refs:
+                yield None, ref, ref
+            return
         for sha, fullref in (line.split() for line in out.splitlines()):
-            if fullref == 'refs/heads/' + ref:
-                return 'branch', sha
-            elif fullref == 'refs/tags/' + ref:
-                return 'tag', sha
-            elif fullref == ref and ref == 'HEAD':
-                return 'HEAD', sha
-        return None, ref
+            if fullref.startswith('refs/heads/'):
+                ref = fullref.split("/")[-1]
+                yield 'branch', ref, sha
+            elif fullref.startswith('refs/tags/'):
+                ref = fullref.split("/")[-1]
+                yield 'tag', ref, sha
+            elif fullref == 'HEAD':
+                yield 'HEAD', fullref, sha
+            else:
+                raise GitAggregatorException(
+                    "Unrecognized type for value from ls-remote: %r"
+                    % (fullref, ))
 
     def log_call(self, cmd, callwith=subprocess.check_call,
                  log_level=logging.DEBUG, **kw):
@@ -166,9 +185,10 @@ class Repo(object):
         return ret
 
     def aggregate(self):
-        """ Aggregate all merges into the target branch
-        If the target_dir doesn't exist, create an empty git repo otherwise
-        clean it, add all remotes , and merge all merges.
+        """Aggregate all merges into the target branch
+
+        If the target_dir doesn't exist, create an empty git repo
+        otherwise clean it, add all remotes, and merge all merges.
         """
         logger.info('Start aggregation of %s', self.cwd)
         target_dir = self.cwd
@@ -177,18 +197,26 @@ class Repo(object):
         if is_new:
             cloned = self.init_repository(target_dir)
 
-        self._switch_to_branch(self.target['branch'])
         for r in self.remotes:
             self._set_remote(**r)
-        self.fetch()
+        fetch_heads = self.fetch()
+        logger.debug("fetch_heads: %r", fetch_heads)
         merges = self.merges
-        if not is_new or cloned:
+        origin = merges[0]
+        origin_sha1 = fetch_heads[(origin["remote"],
+                                   origin["ref"])]
+        merges = merges[1:]
+        if is_new and not cloned:
+            self._switch_to_branch(
+                self.target['branch'],
+                origin_sha1)
+        else:
             # reset to the first merge
-            origin = merges[0]
-            merges = merges[1:]
-            self._reset_to(origin["remote"], origin["ref"])
+            self._reset_to(origin_sha1)
         for merge in merges:
-            self._merge(merge)
+            logger.info("Merge %s, %s", merge["remote"], merge["ref"])
+            self._merge(fetch_heads[(merge["remote"],
+                                     merge["ref"])])
         self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
 
@@ -229,7 +257,7 @@ class Repo(object):
             # repository
             cmd += ('--filter=blob:none',)
         # Try to clone target branch, if it exists
-        rtype, _sha = self.query_remote_ref(repository, branch)
+        rtype, _ref, _sha = list(self.query_remote(repository, branch))[0]
         if rtype in {'branch', 'tag'}:
             cmd += ('-b', branch)
         # Emtpy fetch options to use global default for 1st clone
@@ -239,13 +267,73 @@ class Repo(object):
         return True
 
     def fetch(self):
+        """Fetch all given (remote, ref) and associate their SHA
+
+        Will query and fetch all (remote, ref) in current git repository,
+        it'll take care to resolve each tuple in the local commit's SHA1
+
+        It returns a dict structure associating each (remote, ref) to their
+        SHA in local repository.
+        """
         basecmd = ("git", "fetch")
         logger.info("Fetching required remotes")
+        fetch_heads = {}
+        ls_remote_refs = collections.defaultdict(list)  # to ls-query
         for merge in self.merges:
-            cmd = basecmd + self._fetch_options(merge) + (merge["remote"],)
-            if merge["remote"] not in self.fetch_all:
-                cmd += (merge["ref"],)
+            remote = merge["remote"]
+            ref = merge["ref"]
+            pin = merge.get("pin")
+            cmd = (
+                basecmd +
+                self._fetch_options({"remote": remote, "ref": ref}) +
+                (remote,))
+            if remote not in self.fetch_all:
+                cmd += (ref, )
+            else:
+                if pin:
+                    # Probably solvable, but a little too tricky for me to
+                    # figure out right now
+                    raise GitAggregatorException(
+                        "Cannot use fetch_all with pin"
+                    )
+                ls_remote_refs[remote].append(ref)
             self.log_call(cmd, cwd=self.cwd)
+            if pin:
+                try:
+                    fetch_heads[(remote, ref)] = self.rev_parse(pin)
+                except Exception:
+                    logger.error(
+                        "Could not find pin %r after fetching %r", pin, ref
+                    )
+                    raise
+            else:
+                with open(os.path.join(self.cwd, ".git", "FETCH_HEAD")) as f:
+                    for line in f:
+                        fetch_head, for_merge, _ = line.split("\t")
+                        if for_merge == "not-for-merge":
+                            continue
+                        break
+                fetch_heads[(remote, ref)] = fetch_head
+        if self.fetch_all:
+            if self.fetch_all is True:
+                remotes = self.remotes
+            else:
+                remotes = [r for r in self.remotes
+                           if r["name"] in self.fetch_all]
+            for remote in remotes:
+                refs = self.query_remote(
+                    remote["url"],
+                    ls_remote_refs[remote["name"]])
+                for _, ref, sha in refs:
+                    fetch_heads[(remote["name"], ref)] = sha
+        return fetch_heads
+
+    def rev_parse(self, ref):
+        return self.log_call(
+            ["git", "rev-parse", "--verify", ref],
+            callwith=subprocess.check_output,
+            cwd=self.cwd,
+        ).strip()
 
     def push(self):
         remote = self.target['remote']
@@ -255,7 +343,10 @@ class Repo(object):
                 "Cannot push %s, no target remote configured" % branch
             )
         logger.info("Push %s to %s", branch, remote)
-        self.log_call(['git', 'push', '-f', remote, branch], cwd=self.cwd)
+        self.log_call(
+            ['git', 'push', '-f', remote, "HEAD:%s" % branch],
+            cwd=self.cwd
+        )
 
     def _check_status(self):
         """Check repo status and except if dirty."""
@@ -277,25 +368,23 @@ class Repo(object):
                 cmd += ("--%s" % option, str(value))
         return cmd
 
-    def _reset_to(self, remote, ref):
+    def _reset_to(self, ref):
         if not self.force:
             self._check_status()
-        logger.info('Reset branch to %s %s', remote, ref)
-        rtype, sha = self.query_remote_ref(remote, ref)
-        if rtype is None and not ishex(ref):
-            raise GitAggregatorException(
-                'Could not reset %s to %s. No commit found for %s '
-                % (remote, ref, ref))
-        cmd = ['git', 'reset', '--hard', sha]
+        logger.info('Reset branch to %s', ref)
+        cmd = ['git', 'reset', '--hard', ref]
         if logger.getEffectiveLevel() != logging.DEBUG:
             cmd.insert(2, '--quiet')
         self.log_call(cmd, cwd=self.cwd)
         self.log_call(['git', 'clean', '-ffd'], cwd=self.cwd)
 
-    def _switch_to_branch(self, branch_name):
+    def _switch_to_branch(self, branch_name, ref=None):
         # check if the branch already exists
         logger.info("Switch to branch %s", branch_name)
-        self.log_call(['git', 'checkout', '-B', branch_name], cwd=self.cwd)
+        cmd = ['git', 'checkout', '-B', branch_name]
+        if ref is not None:
+            cmd.append(self.rev_parse(ref))
+        self.log_call(cmd, cwd=self.cwd)
 
     def _execute_shell_command_after(self):
         logger.info('Execute shell after commands')
@@ -303,8 +392,7 @@ class Repo(object):
             self.log_call(cmd, shell=True, cwd=self.cwd)
 
     def _merge(self, merge):
-        logger.info("Pull %s, %s", merge["remote"], merge["ref"])
-        cmd = ("git", "pull", "--ff", "--no-rebase")
+        cmd = ("git", "merge", "--ff")
         if self.git_version >= (1, 7, 10):
             # --edit and --no-edit appear with Git 1.7.10
             # see Documentation/RelNotes/1.7.10.txt of Git
@@ -312,7 +400,7 @@ class Repo(object):
             cmd += ('--no-edit',)
         if logger.getEffectiveLevel() != logging.DEBUG:
             cmd += ('--quiet',)
-        cmd += self._fetch_options(merge) + (merge["remote"], merge["ref"])
+        cmd += (merge,)
         self.log_call(cmd, cwd=self.cwd)
 
     def _get_remotes(self):

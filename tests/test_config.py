@@ -27,7 +27,7 @@ class TestConfig(unittest.TestCase):
     merges:
         - oca 8.0
         - oca refs/pull/105/head
-        - oca refs/pull/106/head
+        - oca refs/pull/106/head 1234abcd
     target: acsone aggregated_branch_name
         """
         repos = config.get_repos(self._parse_config(config_yaml))
@@ -44,7 +44,8 @@ class TestConfig(unittest.TestCase):
              'defaults': {},
              'merges': [{'ref': '8.0', 'remote': 'oca'},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
-                        {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+                        {'ref': 'refs/pull/106/head', 'remote': 'oca',
+                         'pin': '1234abcd'}],
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
@@ -75,6 +76,7 @@ class TestConfig(unittest.TestCase):
                     -
                         remote: oca
                         ref: refs/pull/106/head
+                        pin: 1234abcd
                 target: acsone aggregated_branch_name
         """)
         repos = config.get_repos(self._parse_config(config_yaml))
@@ -91,7 +93,8 @@ class TestConfig(unittest.TestCase):
              'defaults': {'depth': 1},
              'merges': [{'ref': '8.0', 'remote': 'oca', 'depth': 1000},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
-                        {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+                        {'ref': 'refs/pull/106/head', 'remote': 'oca',
+                         'pin': '1234abcd'}],
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
@@ -201,7 +204,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(
             ex.exception.args[0],
             '/product_attribute: Merge must be formatted as '
-            '"remote_name ref".')
+            '"remote_name ref [pin]".')
         config_yaml = """
 /product_attribute:
     remotes:
