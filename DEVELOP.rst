@@ -13,8 +13,5 @@ How to release
 * python setup.py check --restructuredtext
 * commit everything
 * make sure tests pass!
-* git push and make sure travis is green
-* git tag <version>, where <version> is PEP 440 compliant
-* git push --tags
-
-Uploading of tagged versions to pypi will be taken care of by travis.
+* git push and make sure CI is green
+* create a tagged release on GitHub, which will trigger deployment to PyPI
