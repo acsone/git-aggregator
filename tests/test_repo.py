@@ -73,6 +73,7 @@ class TestRepo(unittest.TestCase):
              commit 1 -> fork after -> remote 2
              tag1
              commit 2
+             annotated tag2
         *remote2 (clone remote 1)
              commit 1
              commit 3
@@ -94,6 +95,8 @@ class TestRepo(unittest.TestCase):
             subprocess.check_call(['git', 'tag', 'tag1'], cwd=self.remote1)
             self.commit_2_sha = git_write_commit(
                 self.remote1, 'tracked', "last", msg="last commit")
+            subprocess.check_call(['git', 'tag', '-am', 'foo', 'tag2'],
+                                  cwd=self.remote1)
             self.commit_3_sha = git_write_commit(
                 self.remote2, 'tracked2', "remote2", msg="new commit")
             subprocess.check_call(['git', 'checkout', '-b', 'b2'],
@@ -120,6 +123,24 @@ class TestRepo(unittest.TestCase):
         repo.aggregate()
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_1_sha)
+
+    def test_annotated_tag(self):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag2'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_2_sha)
 
     def test_simple_merge(self):
         remotes = [{
