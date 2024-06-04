@@ -350,8 +350,8 @@ class Repo(object):
         else:
             logger.info('Updating remote %s <%s> -> <%s>',
                         name, exising_url, url)
-            self.log_call(['git', 'remote', 'rm', name], cwd=self.cwd)
-            self.log_call(['git', 'remote', 'add', name, url], cwd=self.cwd)
+            self.log_call(
+                ['git', 'remote', 'set-url', name, url], cwd=self.cwd)
 
     def _github_api_get(self, path):
         url = 'https://api.github.com' + path
