@@ -13,6 +13,7 @@ import requests
 
 from .exception import DirtyException, GitAggregatorException
 from ._compat import console_to_str
+from .command import CommandExecutor
 
 FETCH_DEFAULTS = ("depth", "shallow-since", "shallow-exclude")
 logger = logging.getLogger(__name__)
@@ -32,13 +33,13 @@ def ishex(s):
     return True
 
 
-class Repo(object):
+class Repo(CommandExecutor):
 
     _git_version = None
 
     def __init__(self, cwd, remotes, merges, target,
                  shell_command_after=None, fetch_all=False, defaults=None,
-                 force=False):
+                 force=False, patches=None):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -58,7 +59,7 @@ class Repo(object):
         :param bool force:
             When ``False``, it will stop if repo is dirty.
         """
-        self.cwd = cwd
+        super().__init__(cwd)
         self.remotes = remotes
         if fetch_all is True:
             self.fetch_all = frozenset(r["name"] for r in remotes)
@@ -69,6 +70,7 @@ class Repo(object):
         self.shell_command_after = shell_command_after or []
         self.defaults = defaults or dict()
         self.force = force
+        self.patches = patches
 
     @property
     def git_version(self):
@@ -150,21 +152,6 @@ class Repo(object):
                 return 'HEAD', sha
         return None, ref
 
-    def log_call(self, cmd, callwith=subprocess.check_call,
-                 log_level=logging.DEBUG, **kw):
-        """Wrap a subprocess call with logging
-        :param meth: the calling method to use.
-        """
-        logger.log(log_level, "%s> call %r", self.cwd, cmd)
-        try:
-            ret = callwith(cmd, **kw)
-        except Exception:
-            logger.error("%s> error calling %r", self.cwd, cmd)
-            raise
-        if callwith == subprocess.check_output:
-            ret = console_to_str(ret)
-        return ret
-
     def aggregate(self):
         """ Aggregate all merges into the target branch
         If the target_dir doesn't exist, create an empty git repo otherwise
@@ -189,6 +176,7 @@ class Repo(object):
             self._reset_to(origin["remote"], origin["ref"])
         for merge in merges:
             self._merge(merge)
+        self.patches.apply()
         self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
 
@@ -314,6 +302,24 @@ class Repo(object):
             cmd += ('--quiet',)
         cmd += self._fetch_options(merge) + (merge["remote"], merge["ref"])
         self.log_call(cmd, cwd=self.cwd)
+
+    def _patch(self, patch_path):
+        cmd = (
+            "patch",
+            "-p1",
+            "--no-backup-if-mismatch",
+            "-t",
+            "-i",
+            str(patch_path.resolve()),
+        )
+        if logger.getEffectiveLevel() != logging.DEBUG:
+            cmd += ('--quiet',)
+        self.log_call(cmd, cwd=self.cwd)
+        self.log_call(("git", "add", "."), cwd=self.cwd)
+        self.log_call(
+            ("git", "commit", "-am", "Applied patch %s" % str(patch_path)),
+            cwd=self.cwd,
+        )
 
     def _get_remotes(self):
         lines = self.log_call(
