@@ -124,6 +124,28 @@ class TestRepo(unittest.TestCase):
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_1_sha)
 
+    def test_empty_dir(self):
+        # ensure git clone in empty directory works
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'tag1'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg1'
+        }
+        # self.cwd should not exist yet
+        self.assertFalse(os.path.exists(self.cwd))
+        os.mkdir(self.cwd)
+        repo = Repo(self.cwd, remotes, merges, target)
+        repo.aggregate()
+        last_rev = git_get_last_rev(self.cwd)
+        self.assertEqual(last_rev, self.commit_1_sha)
+
     def test_annotated_tag(self):
         remotes = [{
             'name': 'r1',
