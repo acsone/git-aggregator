@@ -2,13 +2,13 @@ default_language_version:
   python: python3
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v5.0.0
     hooks:
       - id: check-toml
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/PyCQA/flake8
-    rev: "3.9.2"
+    rev: "7.1.1"
     hooks:
       - id: flake8
