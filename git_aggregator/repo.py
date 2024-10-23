@@ -173,7 +173,7 @@ class Repo(object):
         logger.info('Start aggregation of %s', self.cwd)
         target_dir = self.cwd
 
-        is_new = not os.path.exists(target_dir)
+        is_new = not os.path.exists(target_dir) or os.listdir(target_dir) == []
         if is_new:
             cloned = self.init_repository(target_dir)
 
