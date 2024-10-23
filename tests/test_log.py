@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 
 import logging
@@ -20,7 +19,7 @@ class TestLog(unittest.TestCase):
 
     def setUp(self):
         """ Setup """
-        super(TestLog, self).setUp()
+        super().setUp()
         reset_logger()
 
     def test_info(self):

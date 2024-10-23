@@ -1,18 +1,16 @@
-# -*- coding: utf-8 -*-
 # © 2015 ACSONE SA/NV
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
-from __future__ import unicode_literals
-import os
 import logging
+import os
 import re
 import subprocess
 
 import requests
 
-from .exception import DirtyException, GitAggregatorException
 from ._compat import console_to_str
+from .exception import DirtyException, GitAggregatorException
 
 FETCH_DEFAULTS = ("depth", "shallow-since", "shallow-exclude")
 logger = logging.getLogger(__name__)
@@ -32,7 +30,7 @@ def ishex(s):
     return True
 
 
-class Repo(object):
+class Repo:
 
     _git_version = None
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2015 ACSONE SA/NV
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 import os
@@ -9,8 +8,8 @@ from textwrap import dedent
 import yaml
 
 from git_aggregator import config
-from git_aggregator.exception import ConfigException
 from git_aggregator._compat import PY2
+from git_aggregator.exception import ConfigException
 
 
 class TestConfig(unittest.TestCase):
