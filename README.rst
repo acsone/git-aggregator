@@ -224,6 +224,16 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+4.0.2 (2024-10-23)
+------------------
+
+* target_dir may be an empty directory (`#83 <https://github.com/acsone/git-aggregator/pull/83>`_)
+
+4.0.1 (2024-06-04)
+------------------
+
+* fix: git remote: change url instead of rm / add (`#81 <https://github.com/acsone/git-aggregator/pull/81>`_`)
+
 4.0 (2023-07-22)
 ----------------
 
