@@ -1,0 +1,15 @@
+[tool.ruff]
+fix = true
+line-length = 79
+
+[tool.ruff.lint]
+extend-select = [
+    "I",
+    "UP",
+]
+ignore = [
+    "UP031", # % formatting
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["git_aggregator"]

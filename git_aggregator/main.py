@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # © 2015-2019 ACSONE SA/NV
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 
@@ -7,22 +6,24 @@ import os
 import sys
 import threading
 import traceback
+
 try:
-    from Queue import Queue, Empty as EmptyQueue
+    from Queue import Empty as EmptyQueue
+    from Queue import Queue
 except ImportError:
-    from queue import Queue, Empty as EmptyQueue
+    from queue import Empty as EmptyQueue
+    from queue import Queue
 
 import argparse
-import argcomplete
-import colorama
 import fnmatch
 
-from .utils import ThreadNameKeeper
-from .log import DebugLogFormatter
-from .log import LogFormatter
-from .config import load_config
-from .repo import Repo
+import argcomplete
+import colorama
 
+from .config import load_config
+from .log import DebugLogFormatter, LogFormatter
+from .repo import Repo
+from .utils import ThreadNameKeeper
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +32,7 @@ _LOG_LEVEL_STRINGS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
 
 def _log_level_string_to_int(log_level_string):
     if log_level_string not in _LOG_LEVEL_STRINGS:
-        message = 'invalid choice: {0} (choose from {1})'.format(
-            log_level_string, _LOG_LEVEL_STRINGS)
+        message = f'invalid choice: {log_level_string} (choose from {_LOG_LEVEL_STRINGS})'
         raise argparse.ArgumentTypeError(message)
 
     log_level_int = getattr(logging, log_level_string, logging.INFO)
@@ -99,7 +99,7 @@ def get_parser():
         dest='log_level',
         type=_log_level_string_to_int,
         nargs='?',
-        help='Set the logging output level. {0}'.format(_LOG_LEVEL_STRINGS))
+        help=f'Set the logging output level. {_LOG_LEVEL_STRINGS}')
 
     main_parser.add_argument(
         '-e', '--expand-env',
