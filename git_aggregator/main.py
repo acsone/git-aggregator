@@ -133,6 +133,15 @@ def get_parser():
     )
 
     main_parser.add_argument(
+        '-D', '--depth',
+        dest='depth',
+        default=0,
+        type=int,
+        help='Force depth of git repository to fetch. Default is 0 (fetch all). '
+             'This is useful on CI/CD environments to speed up the process. '
+             'Also, this will be ignore depth setting in the configuration file.',
+    )
+    main_parser.add_argument(
         '--no-color',
         dest='no_color',
         default=False,
@@ -245,7 +254,7 @@ def run(args):
     in args.command"""
 
     repos = load_config(
-        args.config, args.expand_env, args.env_file, args.force)
+        args.config, args.expand_env, args.env_file, args.force, args.depth)
 
     jobs = max(args.jobs, 1)
     threads = []

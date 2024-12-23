@@ -130,7 +130,7 @@ def get_repos(config, force=False):
     return repo_list
 
 
-def load_config(config, expand_env=False, env_file=None, force=False):
+def load_config(config, expand_env=False, env_file=None, force=False, depth=0):
     """Return repos from a directory and fnmatch. Not recursive.
 
     :param config: paths to config file
@@ -140,6 +140,8 @@ def load_config(config, expand_env=False, env_file=None, force=False):
     :param env_file: path to file with variables to add to the environment.
     :type env_file: str or None
     :param bool force: True to aggregate even if repo is dirty.
+    :param int depth: Force depth of git repository to fetch. Default is 0
+                      (fetch all).
     :returns: expanded config dict item
     :rtype: iter(dict)
     """
@@ -172,5 +174,12 @@ def load_config(config, expand_env=False, env_file=None, force=False):
         config = open(config).read()
 
     conf = yaml.load(config, Loader=yaml.SafeLoader)
+
+    if depth > 0: # User wants to fetch only the last n commits
+        for repo_name, vals in conf.items():
+            if vals.get("defaults"):
+                conf[repo_name]["defaults"]["depth"] = depth
+            else:
+                conf[repo_name]["defaults"] = {"depth": depth}
 
     return get_repos(conf or {}, force)
