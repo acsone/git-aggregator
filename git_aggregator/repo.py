@@ -359,7 +359,7 @@ class Repo:
             headers = {'Authorization': 'token %s' % token}
         return requests.get(url, headers=headers)
 
-    def collect_prs_info(self):
+    def collect_prs_info(self, merges=None):
         """Collect all pending merge PRs info.
 
         :returns: mapping of PRs by state
@@ -371,7 +371,7 @@ class Repo:
             '^(refs/)?pull/(?P<pr>[0-9]+)/head$')
         remotes = {r['name']: r['url'] for r in self.remotes}
         all_prs = {}
-        for merge in self.merges:
+        for merge in (merges or self.merges):
             remote = merge['remote']
             ref = merge['ref']
             repo_url = remotes[remote]
