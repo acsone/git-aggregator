@@ -43,6 +43,27 @@ Create a ``repos.yaml`` or ``repos.yml`` file:
         fetch_all:
             - oca
 
+    ./gitlab-repo-example:
+        remotes:
+            gitlab_1: https://giltab.com/sample-org/sample-repo.git
+            gitlab_2: https://giltab.com/another-sample-org/sample-repo-fork.git
+        merges:
+            - gitlab_1 main
+            - gitlab_2 merge-requests/123/head
+    target: gitlab_1
+
+    # FYI: Bitbucket doesn't support fetching PR's
+    ./bitbucket-repo-example:
+        remotes:
+            bitbucket_1: https://bitbucket.org/sample-org/sample-repo.git
+            bitbucket_2: https://bitbucker.org/another-sample-org/sample-repo-fork.git
+        merges:
+            - bitbucket_1 main
+            - bitbucket_2 dev
+    target: bitbucket_1
+
+
+
 Environment variables inside of this file will be expanded if the proper option is selected.
 
 All the ``merges`` are combined into a single branch. By default this branch is called ``_git_aggregated`` but another name may be given in the ``target`` section.
@@ -106,6 +127,38 @@ the ``dict`` alternate construction. If you need to disable a default in
                 remote: odoo
                 ref: refs/pull/14859/head
         target: acsone 9.0
+
+    ./gitlab-repo-example:
+        defaults:
+            depth: 20
+        remotes:
+            gitlab_1: https://giltab.com/sample-org/sample-repo.git
+            gitlab_2: https://giltab.com/another-sample-org/sample-repo-fork.git
+        merges:
+            -
+                remote: gitlab_1
+                ref: main
+                depth: 20
+            -
+                remote: gitlab_2
+                ref: merge-requests/123/head
+        target: gitlab_1
+
+    # FYI: Bitbucket doesn't support fetching PR's
+    ./bitbucket-repo-example:
+        remotes:
+            bitbucket_1: https://bitbucket.org/sample-org/sample-repo.git
+            bitbucket_2: https://bitbucker.org/another-sample-org/sample-repo-fork.git
+        merges:
+            -
+                remote: bitbucket_1
+                ref: main
+                depth: 3
+            -
+                remote: bitbucket_2
+                ref: dev
+        target: bitbucket_1
+
 
 Remember that you need to fetch at least the common ancestor of all merges for
 it to succeed.
