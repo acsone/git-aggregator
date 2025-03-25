@@ -277,6 +277,13 @@ To work around API limitation, you must first generate a
 Changes
 =======
 
+4.1 (2025-03-25)
+----------------
+
+* Update README for other forges than GitHub (`#88 <https://github.com/acsone/git-aggregator/pull/88>`_)
+* Internal API change (`#91 <https://github.com/acsone/git-aggregator/pull/91>`_)
+* Drop support for unsupported Python versions (`#92 <https://github.com/acsone/git-aggregator/pull/92>`_)
+
 4.0.2 (2024-10-23)
 ------------------
 
