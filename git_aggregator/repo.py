@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import subprocess
+import time
 
 import requests
 
@@ -391,6 +392,14 @@ class Repo:
             pr_info['path'] = '{owner}/{repo}/pulls/{pr}'.format(**pr_info)
             pr_info['shortcut'] = '{owner}/{repo}#{pr}'.format(**pr_info)
             r = self._github_api_get('/repos/{path}'.format(**pr_info))
+            if r.status_code == 403 and 'X-RateLimit-Reset' in r.headers:
+                reset_time = int(r.headers['X-RateLimit-Reset'])
+                wait_time = max(0, reset_time - int(time.time()))
+                logger.warning(
+                    'Rate limit exceeded. Waiting for %s seconds.', wait_time
+                )
+                time.sleep(wait_time)
+                r = self._github_api_get('/repos/{path}'.format(**pr_info))
             if r.status_code != 200:
                 logger.warning(
                     'Could not get status of {path}. '
