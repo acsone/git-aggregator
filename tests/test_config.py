@@ -1,4 +1,5 @@
 # © 2015 ACSONE SA/NV
+# Copyright 2025 Michael Tietz (MT Software) <mtietz@mt-software.de>
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 import os
 import tempfile
@@ -10,6 +11,7 @@ import yaml
 from git_aggregator import config
 from git_aggregator._compat import PY2
 from git_aggregator.exception import ConfigException
+from git_aggregator.patch import Patches
 
 
 class TestConfig(unittest.TestCase):
@@ -44,6 +46,7 @@ class TestConfig(unittest.TestCase):
              'merges': [{'ref': '8.0', 'remote': 'oca'},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+             'patches': [],
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
@@ -56,6 +59,40 @@ class TestConfig(unittest.TestCase):
              {'name': 'acsone',
               'url':
               'git+ssh://git@github.com/acsone/product-attribute.git'}])
+
+    def test_load_patches(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            patch_file = os.path.join(tmpdir, 'single.patch')
+            patch_dir = os.path.join(tmpdir, 'patches')
+            os.mkdir(patch_dir)
+            os.mkdir(os.path.join(patch_dir, 'subdir'))
+            for path in (patch_file,
+                         os.path.join(patch_dir, '0002-b.patch'),
+                         os.path.join(patch_dir, '0001-a.patch')):
+                with open(path, 'w') as f:
+                    f.write('')
+            url = 'https://github.com/OCA/web/pull/1.patch'
+            config_yaml = dedent(f"""
+                /web:
+                    remotes:
+                        oca: https://github.com/OCA/web.git
+                    merges:
+                        - oca 8.0
+                    target: oca aggregated_branch_name
+                    patches:
+                        - {patch_file}
+                        - {patch_dir}
+                        - {url}
+                """)
+            repos = config.get_repos(self._parse_config(config_yaml))
+            patches = repos[0]['patches']
+            self.assertIsInstance(patches, Patches)
+            self.assertEqual(
+                [(p.path, p.is_local, p.cwd) for p in patches],
+                [(patch_file, True, '/web'),
+                 (os.path.join(patch_dir, '0001-a.patch'), True, '/web'),
+                 (os.path.join(patch_dir, '0002-b.patch'), True, '/web'),
+                 (url, False, '/web')])
 
     def test_load_defaults(self):
         config_yaml = dedent("""
@@ -91,6 +128,7 @@ class TestConfig(unittest.TestCase):
              'merges': [{'ref': '8.0', 'remote': 'oca', 'depth': 1000},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+             'patches': [],
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
