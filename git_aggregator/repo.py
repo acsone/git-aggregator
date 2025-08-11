@@ -38,7 +38,7 @@ class Repo(CommandExecutor):
 
     def __init__(self, cwd, remotes, merges, target,
                  shell_command_after=None, fetch_all=False, defaults=None,
-                 force=False):
+                 force=False, patches=None):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -69,6 +69,7 @@ class Repo(CommandExecutor):
         self.shell_command_after = shell_command_after or []
         self.defaults = defaults or dict()
         self.force = force
+        self.patches = patches
 
     @property
     def git_version(self):
@@ -174,6 +175,7 @@ class Repo(CommandExecutor):
             self._reset_to(origin["remote"], origin["ref"])
         for merge in merges:
             self._merge(merge)
+        self.patches.apply()
         self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
 
