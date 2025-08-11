@@ -1,4 +1,5 @@
 # © 2015 ACSONE SA/NV
+# Copyright 2023 Michael Tietz (MT Software) <mtietz@mt-software.de>
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
@@ -10,6 +11,7 @@ import subprocess
 import requests
 
 from ._compat import console_to_str
+from .command import CommandExecutor
 from .exception import DirtyException, GitAggregatorException
 
 FETCH_DEFAULTS = ("depth", "shallow-since", "shallow-exclude")
@@ -30,13 +32,13 @@ def ishex(s):
     return True
 
 
-class Repo:
+class Repo(CommandExecutor):
 
     _git_version = None
 
     def __init__(self, cwd, remotes, merges, target,
                  shell_command_after=None, fetch_all=False, defaults=None,
-                 force=False):
+                 force=False, patches=None):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -56,7 +58,7 @@ class Repo:
         :param bool force:
             When ``False``, it will stop if repo is dirty.
         """
-        self.cwd = cwd
+        super().__init__(cwd)
         self.remotes = remotes
         if fetch_all is True:
             self.fetch_all = frozenset(r["name"] for r in remotes)
@@ -67,6 +69,7 @@ class Repo:
         self.shell_command_after = shell_command_after or []
         self.defaults = defaults or dict()
         self.force = force
+        self.patches = patches
 
     @property
     def git_version(self):
@@ -148,21 +151,6 @@ class Repo:
                 return 'HEAD', sha
         return None, ref
 
-    def log_call(self, cmd, callwith=subprocess.check_call,
-                 log_level=logging.DEBUG, **kw):
-        """Wrap a subprocess call with logging
-        :param meth: the calling method to use.
-        """
-        logger.log(log_level, "%s> call %r", self.cwd, cmd)
-        try:
-            ret = callwith(cmd, **kw)
-        except Exception:
-            logger.error("%s> error calling %r", self.cwd, cmd)
-            raise
-        if callwith == subprocess.check_output:
-            ret = console_to_str(ret)
-        return ret
-
     def aggregate(self):
         """ Aggregate all merges into the target branch
         If the target_dir doesn't exist, create an empty git repo otherwise
@@ -187,6 +175,7 @@ class Repo:
             self._reset_to(origin["remote"], origin["ref"])
         for merge in merges:
             self._merge(merge)
+        self.patches.apply()
         self._execute_shell_command_after()
         logger.info('End aggregation of %s', self.cwd)
 

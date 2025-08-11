@@ -1,4 +1,5 @@
 # © 2015 ACSONE SA/NV
+# Copyright 2025 Michael Tietz (MT Software) <mtietz@mt-software.de>
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 import os
 import tempfile
@@ -44,6 +45,7 @@ class TestConfig(unittest.TestCase):
              'merges': [{'ref': '8.0', 'remote': 'oca'},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+             'patches': [],
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
@@ -91,6 +93,7 @@ class TestConfig(unittest.TestCase):
              'merges': [{'ref': '8.0', 'remote': 'oca', 'depth': 1000},
                         {'ref': 'refs/pull/105/head', 'remote': 'oca'},
                         {'ref': 'refs/pull/106/head', 'remote': 'oca'}],
+             'patches': [],
              'remotes': [],
              'shell_command_after': [],
              'target': {'branch': 'aggregated_branch_name',
