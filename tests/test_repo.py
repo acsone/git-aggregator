@@ -444,3 +444,87 @@ class TestRepo(unittest.TestCase):
 
         self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked')))
         self.assertTrue(os.path.isfile(os.path.join(repo3_dir, 'tracked2')))
+
+    def test_sparse_checkout_single_path(self):
+        """Test sparse-checkout with a single path."""
+        # Create a directory structure in remote1
+        with WorkingDirectoryKeeper():
+            os.chdir(self.remote1)
+            os.makedirs('src/module1', exist_ok=True)
+            os.makedirs('src/module2', exist_ok=True)
+            git_write_commit(self.remote1, 'src/module1/file1.txt',
+                           'content1', msg='add module1 file')
+            git_write_commit(self.remote1, 'src/module2/file2.txt',
+                           'content2', msg='add module2 file')
+
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'main'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+
+        # Test with sparse-checkout for only module1
+        repo = Repo(self.cwd, remotes, merges, target,
+                   sparse_checkout=['src/module1'])
+        repo.aggregate()
+
+        # module1 should be present
+        self.assertTrue(os.path.isfile(
+            os.path.join(self.cwd, 'src/module1/file1.txt')))
+        # module2 should not be checked out
+        self.assertFalse(os.path.exists(
+            os.path.join(self.cwd, 'src/module2')))
+
+    def test_sparse_checkout_multiple_paths(self):
+        """Test sparse-checkout with multiple paths."""
+        # Create a directory structure in remote1
+        with WorkingDirectoryKeeper():
+            os.chdir(self.remote1)
+            os.makedirs('docs', exist_ok=True)
+            os.makedirs('src/core', exist_ok=True)
+            os.makedirs('src/utils', exist_ok=True)
+            os.makedirs('tests', exist_ok=True)
+            git_write_commit(self.remote1, 'docs/readme.md',
+                           'docs content', msg='add docs')
+            git_write_commit(self.remote1, 'src/core/main.py',
+                           'core code', msg='add core')
+            git_write_commit(self.remote1, 'src/utils/helpers.py',
+                           'utils code', msg='add utils')
+            git_write_commit(self.remote1, 'tests/test_main.py',
+                           'test code', msg='add tests')
+
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'main'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+
+        # Test with sparse-checkout for docs and src/core only
+        repo = Repo(self.cwd, remotes, merges, target,
+                   sparse_checkout=['docs', 'src/core'])
+        repo.aggregate()
+
+        # docs and src/core should be present
+        self.assertTrue(os.path.isfile(
+            os.path.join(self.cwd, 'docs/readme.md')))
+        self.assertTrue(os.path.isfile(
+            os.path.join(self.cwd, 'src/core/main.py')))
+        # src/utils and tests should not be checked out
+        self.assertFalse(os.path.exists(
+            os.path.join(self.cwd, 'src/utils')))
+        self.assertFalse(os.path.exists(
+            os.path.join(self.cwd, 'tests')))

@@ -206,6 +206,27 @@ A real life example: applying a patch
         shell_command_after:
             - git am "$(git format-patch -1 XXXXXX -o ../patches)"
 
+Sparse Checkout
+---------------
+
+Git provides sparse-checkout to only checkout a set of files/directories which is
+very useful for more granular control over what we should keep. Especially useful
+when repository is getting big, or when you want to automatically install only
+specific modules from the directory.
+
+Looking at the example below, only ``product_brand`` will be checkout from remote.
+
+.. code-block:: yaml
+
+    ./product_attribute:
+        remotes:
+            oca: https://github.com/OCA/product-attribute.git
+        merges:
+            - oca 8.0
+        target: oca 8.0
+        sparse-checkout:
+            - product_brand
+
 Command line Usage
 ==================
 

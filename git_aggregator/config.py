@@ -126,6 +126,15 @@ def get_repos(config, force=False):
                     cmds = [cmds]
                 commands = cmds
         repo_dict['shell_command_after'] = commands
+        # Handle sparse-checkout configuration
+        sparse_checkout = repo_data.get('sparse-checkout', None)
+        if sparse_checkout:
+            if isinstance(sparse_checkout, string_types):
+                sparse_checkout = [sparse_checkout]
+            elif not isinstance(sparse_checkout, list):
+                raise ConfigException(
+                    '%s: sparse-checkout must be a string or list of strings.' % directory)
+        repo_dict['sparse_checkout'] = sparse_checkout
         repo_list.append(repo_dict)
     return repo_list
 
