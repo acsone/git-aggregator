@@ -435,3 +435,91 @@ class TestConfig(unittest.TestCase):
         config_yaml = dedent(config_yaml)
         repos = config.get_repos(self._parse_config(config_yaml))
         self.assertIs(repos[0]["fetch_all"], True)
+
+    def test_sparse_checkout_string(self):
+        """Test sparse-checkout with a single string path."""
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                sparse-checkout: src/module1
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEqual(repos[0]["sparse_checkout"], ["src/module1"])
+
+    def test_sparse_checkout_list(self):
+        """Test sparse-checkout with a list of paths."""
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                sparse-checkout:
+                    - src/module1
+                    - src/module2
+                    - docs
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertEqual(repos[0]["sparse_checkout"], ["src/module1", "src/module2", "docs"])
+
+    def test_sparse_checkout_invalid_type(self):
+        """Test sparse-checkout with invalid type raises ConfigException."""
+        config_yaml = """
+            /test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                sparse-checkout: 123
+            """
+        config_yaml = dedent(config_yaml)
+        with self.assertRaises(ConfigException) as ex:
+            config.get_repos(self._parse_config(config_yaml))
+        self.assertEqual(
+            ex.exception.args[0],
+            '/test: sparse-checkout must be a string or list of strings.'
+        )
+
+    def test_sparse_checkout_none(self):
+        """Test sparse-checkout with None value (not configured)."""
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(self._parse_config(config_yaml))
+        self.assertIsNone(repos[0]["sparse_checkout"])
+
+    def test_no_sparse_checkout_parameter(self):
+        """Test no_sparse_checkout parameter is passed through get_repos."""
+        config_yaml = """
+            ./test:
+                remotes:
+                    oca: https://github.com/test/test.git
+                merges:
+                    - oca 8.0
+                target: oca aggregated_branch_name
+                sparse-checkout: src/module1
+            """
+        config_yaml = dedent(config_yaml)
+        repos = config.get_repos(
+            self._parse_config(config_yaml),
+            force=False,
+            no_sparse_checkout=True
+        )
+        # Verify no_sparse_checkout is passed to the repo configuration
+        self.assertEqual(repos[0]["no_sparse_checkout"], True)
+        # Verify sparse_checkout is still in config (not removed)
+        self.assertEqual(repos[0]["sparse_checkout"], ["src/module1"])

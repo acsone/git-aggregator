@@ -123,6 +123,14 @@ def get_parser():
     )
 
     main_parser.add_argument(
+        '--no-sparse-checkout',
+        dest='no_sparse_checkout',
+        default=False,
+        action='store_true',
+        help='Skip sparse-checkout for all repositories.',
+    )
+
+    main_parser.add_argument(
         '-j', '--jobs',
         dest='jobs',
         default=1,
@@ -245,7 +253,7 @@ def run(args):
     in args.command"""
 
     repos = load_config(
-        args.config, args.expand_env, args.env_file, args.force)
+        args.config, args.expand_env, args.env_file, args.force, args.no_sparse_checkout)
 
     jobs = max(args.jobs, 1)
     threads = []
