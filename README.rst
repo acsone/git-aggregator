@@ -227,6 +227,12 @@ Looking at the example below, only ``product_brand`` will be checkout from remot
         sparse-checkout:
             - product_brand
 
+You can skip sparse-checkout for all repositories using the ``--no-sparse-checkout`` flag:
+
+.. code-block:: bash
+
+    $ gitaggregate -c repos.yaml --no-sparse-checkout
+
 Command line Usage
 ==================
 

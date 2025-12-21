@@ -36,7 +36,7 @@ class Repo:
 
     def __init__(self, cwd, remotes, merges, target,
                  shell_command_after=None, fetch_all=False, defaults=None,
-                 force=False, sparse_checkout=None):
+                 force=False, sparse_checkout=None, no_sparse_checkout=False):
         """Initialize a git repository aggregator
 
         :param cwd: path to the directory where to initialize the repository
@@ -56,6 +56,8 @@ class Repo:
         :param bool force:
             When ``False``, it will stop if repo is dirty.
         :param sparse_checkout: list of paths to include in sparse-checkout
+        :param bool no_sparse_checkout:
+            When ``True``, disable sparse checkout regardless of configuration.
         """
         self.cwd = cwd
         self.remotes = remotes
@@ -68,6 +70,7 @@ class Repo:
         self.shell_command_after = shell_command_after or []
         self.defaults = defaults or dict()
         self.force = force
+        self.no_sparse_checkout = no_sparse_checkout
         self.sparse_checkout = sparse_checkout
 
     @property
@@ -221,6 +224,9 @@ class Repo:
             repository,
             target_dir,
         )
+        if self.no_sparse_checkout and self.sparse_checkout:
+            logger.info('Sparse checkout is disabled (ignoring config: %s)',
+                        self.sparse_checkout)
         cmd = ('git', 'clone')
         if self.git_version >= (2, 17):
             # Git added support for partial clone in 2.17
@@ -229,7 +235,7 @@ class Repo:
             # repository
             cmd += ('--filter=blob:none',)
         # Enable sparse-checkout if configured
-        if self.sparse_checkout:
+        if self.sparse_checkout and not self.no_sparse_checkout:
             cmd += ('--no-checkout',)
         # Try to clone target branch, if it exists
         rtype, _sha = self.query_remote_ref(repository, branch)
@@ -241,7 +247,7 @@ class Repo:
         self.log_call(cmd)
 
         # Configure and apply sparse-checkout if specified
-        if self.sparse_checkout:
+        if self.sparse_checkout and not self.no_sparse_checkout:
             logger.info('Configuring sparse-checkout for %s', self.sparse_checkout)
             # Enable sparse-checkout
             self.log_call(['git', 'sparse-checkout', 'init', '--cone'], cwd=target_dir)

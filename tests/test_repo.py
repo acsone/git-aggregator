@@ -426,6 +426,7 @@ class TestRepo(unittest.TestCase):
             expand_env=False,
             env_file=None,
             force=False,
+            no_sparse_checkout=False,
         )
 
         with working_directory_keeper:
@@ -528,3 +529,93 @@ class TestRepo(unittest.TestCase):
             os.path.join(self.cwd, 'src/utils')))
         self.assertFalse(os.path.exists(
             os.path.join(self.cwd, 'tests')))
+
+    def test_sparse_checkout_disabled_by_flag(self):
+        """Test that no_sparse_checkout flag overrides sparse-checkout config."""
+        # Create a directory structure in remote1
+        with WorkingDirectoryKeeper():
+            os.chdir(self.remote1)
+            os.makedirs('src/module1', exist_ok=True)
+            os.makedirs('src/module2', exist_ok=True)
+            git_write_commit(self.remote1, 'src/module1/file1.txt',
+                           'content1', msg='add module1 file')
+            git_write_commit(self.remote1, 'src/module2/file2.txt',
+                           'content2', msg='add module2 file')
+
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'main'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+
+        # Configure sparse-checkout but disable it with the flag
+        repo = Repo(self.cwd, remotes, merges, target,
+                   sparse_checkout=['src/module1'],
+                   no_sparse_checkout=True)
+        repo.aggregate()
+
+        # Both modules should be present despite sparse-checkout config
+        # because no_sparse_checkout=True overrides the config
+        self.assertTrue(os.path.isfile(
+            os.path.join(self.cwd, 'src/module1/file1.txt')))
+        self.assertTrue(os.path.isfile(
+            os.path.join(self.cwd, 'src/module2/file2.txt')))
+
+    def test_no_sparse_checkout_integration(self):
+        """Integration test: --no-sparse-checkout flag through main.run()."""
+        # Create a directory structure in remote1
+        with WorkingDirectoryKeeper():
+            os.chdir(self.remote1)
+            os.makedirs('src/module1', exist_ok=True)
+            os.makedirs('src/module2', exist_ok=True)
+            git_write_commit(self.remote1, 'src/module1/file1.txt',
+                           'content1', msg='add module1 file')
+            git_write_commit(self.remote1, 'src/module2/file2.txt',
+                           'content2', msg='add module2 file')
+
+        config_yaml = os.path.join(self.sandbox, 'config_sparse.yaml')
+        with open(config_yaml, 'w') as f:
+            f.write(dedent("""
+            ./repo_sparse:
+                remotes:
+                    r1: %(r1_remote_url)s
+                merges:
+                    - r1 main
+                target: r1 agg
+                sparse-checkout:
+                    - src/module1
+            """ % {
+                'r1_remote_url': self.url_remote1,
+            }))
+
+        # Test with no_sparse_checkout=True
+        args = argparse.Namespace(
+            command='aggregate',
+            config=config_yaml,
+            jobs=1,
+            dirmatch=None,
+            do_push=False,
+            expand_env=False,
+            env_file=None,
+            force=False,
+            no_sparse_checkout=True,
+        )
+
+        with working_directory_keeper:
+            os.chdir(self.sandbox)
+            main.run(args)
+
+        repo_dir = os.path.join(self.sandbox, 'repo_sparse')
+
+        # Both modules should be present because --no-sparse-checkout overrides config
+        self.assertTrue(os.path.isfile(
+            os.path.join(repo_dir, 'src/module1/file1.txt')))
+        self.assertTrue(os.path.isfile(
+            os.path.join(repo_dir, 'src/module2/file2.txt')))

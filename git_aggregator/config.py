@@ -13,10 +13,11 @@ from .exception import ConfigException
 log = logging.getLogger(__name__)
 
 
-def get_repos(config, force=False):
+def get_repos(config, force=False, no_sparse_checkout=False):
     """Return a :py:obj:`list` list of repos from config file.
     :param config: the repos config in :py:class:`dict` format.
     :param bool force: Force aggregate dirty repos or not.
+    :param bool no_sparse_checkout: Disable sparse checkout regardless of config.
     :type config: dict
     :rtype: list
     """
@@ -28,6 +29,7 @@ def get_repos(config, force=False):
             'cwd': directory,
             'defaults': repo_data.get('defaults', dict()),
             'force': force,
+            'no_sparse_checkout': no_sparse_checkout,
         }
         remote_names = set()
         if 'remotes' in repo_data:
@@ -139,7 +141,7 @@ def get_repos(config, force=False):
     return repo_list
 
 
-def load_config(config, expand_env=False, env_file=None, force=False):
+def load_config(config, expand_env=False, env_file=None, force=False, no_sparse_checkout=False):
     """Return repos from a directory and fnmatch. Not recursive.
 
     :param config: paths to config file
@@ -149,6 +151,7 @@ def load_config(config, expand_env=False, env_file=None, force=False):
     :param env_file: path to file with variables to add to the environment.
     :type env_file: str or None
     :param bool force: True to aggregate even if repo is dirty.
+    :param bool no_sparse_checkout: True to disable sparse checkout regardless of config.
     :returns: expanded config dict item
     :rtype: iter(dict)
     """
@@ -182,4 +185,4 @@ def load_config(config, expand_env=False, env_file=None, force=False):
 
     conf = yaml.load(config, Loader=yaml.SafeLoader)
 
-    return get_repos(conf or {}, force)
+    return get_repos(conf or {}, force, no_sparse_checkout)
