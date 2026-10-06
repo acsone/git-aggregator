@@ -1,4 +1,5 @@
 # © 2015 ACSONE SA/NV
+# Copyright 2026 Michael Tietz (MT Software) <mtietz@mt-software.de>
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 # Parts of the code comes from ANYBOX
 # https://github.com/anybox/anybox.recipe.odoo
@@ -22,6 +23,7 @@ from tempfile import mkdtemp
 from textwrap import dedent
 
 from git_aggregator import exception, main
+from git_aggregator.patch import Patches
 from git_aggregator.repo import Repo
 from git_aggregator.utils import (
     WorkingDirectoryKeeper,
@@ -125,6 +127,84 @@ class TestRepo(unittest.TestCase):
         repo.aggregate()
         last_rev = git_get_last_rev(self.cwd)
         self.assertEqual(last_rev, self.commit_1_sha)
+
+    def _make_patches(self, count):
+        """Commit ``count`` changes on top of remote1 master in a scratch
+        clone and export them with git format-patch.
+        Return the directory holding the patch files."""
+        scratch = os.path.join(self.sandbox, 'scratch')
+        patch_dir = os.path.join(self.sandbox, 'patches')
+        subprocess.check_call(['git', 'clone', self.url_remote1, scratch])
+        for i in range(1, count + 1):
+            git_write_commit(
+                scratch, 'patched', f"patch {i}", msg=f"patch commit {i}")
+        subprocess.check_call(
+            ['git', 'format-patch', f'-{count}', '-o', patch_dir],
+            cwd=scratch)
+        return patch_dir
+
+    def _aggregate_with_patches(self, patch_path):
+        remotes = [{
+            'name': 'r1',
+            'url': self.url_remote1
+        }]
+        merges = [{
+            'remote': 'r1',
+            'ref': 'master'
+        }]
+        target = {
+            'remote': 'r1',
+            'branch': 'agg'
+        }
+        patches = Patches.prepare_patches(patch_path, self.cwd)
+        repo = Repo(self.cwd, remotes, merges, target, patches=patches)
+        repo.aggregate()
+
+    def _git_log_subjects(self, count):
+        return subprocess.check_output(
+            ['git', 'log', f'-{count}', '--format=%s'],
+            cwd=self.cwd, universal_newlines=True).splitlines()
+
+    def test_patch_file(self):
+        patch_dir = self._make_patches(1)
+        patch_file = os.path.join(patch_dir, os.listdir(patch_dir)[0])
+        self._aggregate_with_patches(patch_file)
+        self.assertEqual(
+            self._git_log_subjects(2), ["patch commit 1", "last commit"])
+        with open(os.path.join(self.cwd, 'patched')) as f:
+            self.assertEqual(f.read(), "patch 1")
+
+    def test_patch_dir(self):
+        patch_dir = self._make_patches(2)
+        self._aggregate_with_patches(patch_dir)
+        self.assertEqual(
+            self._git_log_subjects(3),
+            ["patch commit 2", "patch commit 1", "last commit"])
+        with open(os.path.join(self.cwd, 'patched')) as f:
+            self.assertEqual(f.read(), "patch 2")
+
+    def test_patch_url(self):
+        patch_dir = self._make_patches(1)
+        patch_file = os.path.join(patch_dir, os.listdir(patch_dir)[0])
+        self._aggregate_with_patches(path2url(patch_file))
+        self.assertEqual(
+            self._git_log_subjects(2), ["patch commit 1", "last commit"])
+
+    def test_patch_missing_file(self):
+        with self.assertRaises(exception.ConfigException):
+            Patches.prepare_patches(
+                os.path.join(self.sandbox, 'missing.patch'), self.cwd)
+
+    def test_patch_unreachable_url(self):
+        url = path2url(os.path.join(self.sandbox, 'missing.patch'))
+        with self.assertRaises(subprocess.CalledProcessError):
+            self._aggregate_with_patches(url)
+
+    def test_patch_empty(self):
+        patch_file = os.path.join(self.sandbox, 'empty.patch')
+        open(patch_file, 'w').close()
+        with self.assertRaises(exception.GitAggregatorException):
+            self._aggregate_with_patches(patch_file)
 
     def test_empty_dir(self):
         # ensure git clone in empty directory works
