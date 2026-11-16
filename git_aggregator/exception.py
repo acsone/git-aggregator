@@ -5,13 +5,11 @@
 class GitAggregatorException(Exception):
     """Base Exception
     """
-    pass
 
 
 class ConfigException(GitAggregatorException):
     """Malformed config definition
     """
-    pass
 
 
 class DirtyException(GitAggregatorException):
