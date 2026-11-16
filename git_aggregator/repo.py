@@ -264,7 +264,9 @@ class Repo:
             cwd=self.cwd,
         )
         if status:
-            raise DirtyException(status)
+            raise DirtyException(
+                "Repository %s is dirty:\n%s" % (self.cwd, status)
+            )
 
     def _fetch_options(self, merge):
         """Get the fetch options from the given merge dict."""

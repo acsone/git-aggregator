@@ -235,7 +235,8 @@ def aggregate_repo(repo, args, sem, err_queue):
         elif args.command == 'show-all-prs':
             repo.show_all_prs()
     except Exception:
-        err_queue.put_nowait(sys.exc_info())
+        logger.error("Aggregation failed for %s", repo.cwd)
+        err_queue.put_nowait((repo.cwd, sys.exc_info()))
     finally:
         sem.release()
 
@@ -276,10 +277,18 @@ def run(args):
         t.join()
 
     if not err_queue.empty():
+        failed = []
         while True:
             try:
-                exc_type, exc_obj, exc_trace = err_queue.get_nowait()
+                cwd, (exc_type, exc_obj, exc_trace) = err_queue.get_nowait()
             except EmptyQueue:
                 break
+            failed.append(cwd)
+            logger.error("Traceback for %s", cwd)
             traceback.print_exception(exc_type, exc_obj, exc_trace)
+        logger.error(
+            "Failed to aggregate %d repo(s): %s",
+            len(failed),
+            ", ".join(failed),
+        )
         sys.exit(1)

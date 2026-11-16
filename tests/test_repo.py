@@ -341,8 +341,11 @@ class TestRepo(unittest.TestCase):
         with open(dummy_file, "a"):
             pass
         # Aggregate 2nd time, dirty, which should fail
-        with self.assertRaises(exception.DirtyException):
+        with self.assertRaises(exception.DirtyException) as dirty:
             repo_noforce.aggregate()
+        # The error must tell which repository is dirty and why
+        self.assertIn(self.cwd, str(dirty.exception))
+        self.assertIn("dummy", str(dirty.exception))
         # Aggregate 3rd time, forcing, so it should work and remove that file
         repo_force = Repo(self.cwd, remotes, merges, target, force=True)
         repo_force.aggregate()
