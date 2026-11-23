@@ -192,7 +192,12 @@ the aggregated directory.
             - echo 'a first command'
             - echo 'a second command'
 
-A real life example: applying a patch
+Patches
+-------
+
+Patches can be applied with ``git am`` after the merges (and before the
+``shell_command_after`` commands). Each entry is a local patch file, a
+directory of patch files (applied in sorted order) or a URL.
 
 .. code-block:: yaml
 
@@ -203,8 +208,13 @@ A real life example: applying a patch
         merges:
             - oca 9.0
         target: acsone aggregated_branch_name
-        shell_command_after:
-            - git am "$(git format-patch -1 XXXXXX -o ../patches)"
+        patches:
+            - ../patches/0001-fix.patch
+            - ../patches/odoo
+            - https://github.com/OCA/OCB/pull/1234.patch
+
+Relative paths are resolved from the directory where ``gitaggregate`` is run.
+A missing, unreachable or empty patch stops the aggregation with an error.
 
 Command line Usage
 ==================
@@ -413,11 +423,13 @@ Contributors
 * Simone Orsi (camptocamp_)
 * Artem Kostyuk
 * Jan Verbeek
+* Michael Tietz (MT_Software_)
 
 .. _ACSONE: https://www.acsone.eu
 .. _Tecnativa: https://www.tecnativa.com
 .. _camptocamp: https://www.camptocamp.com
 .. _LasLabs: https://laslabs.com
+.. _MT_Software: https://github.com/mt-software-de
 
 Maintainer
 ----------

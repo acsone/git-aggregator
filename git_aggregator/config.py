@@ -1,4 +1,5 @@
 # © 2015 ACSONE SA/NV
+# Copyright 2023 Michael Tietz (MT Software) <mtietz@mt-software.de>
 # License AGPLv3 (http://www.gnu.org/licenses/agpl-3.0-standalone.html)
 
 import logging
@@ -9,8 +10,19 @@ import yaml
 
 from ._compat import string_types
 from .exception import ConfigException
+from .patch import Patches
 
 log = logging.getLogger(__name__)
+
+
+def update_patches(repo_dict, repo_data):
+    """Check and update repo_dict with patch files"""
+    patches_data = repo_data.get("patches")
+    patches = repo_dict.setdefault("patches", Patches())
+    if not patches_data:
+        return
+    for patch in patches_data:
+        patches += Patches.prepare_patches(patch, repo_dict.get("cwd"))
 
 
 def get_repos(config, force=False):
@@ -126,6 +138,7 @@ def get_repos(config, force=False):
                     cmds = [cmds]
                 commands = cmds
         repo_dict['shell_command_after'] = commands
+        update_patches(repo_dict, repo_data)
         repo_list.append(repo_dict)
     return repo_list
 
